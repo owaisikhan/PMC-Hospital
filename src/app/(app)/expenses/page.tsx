@@ -1,9 +1,14 @@
 import { PageHeader } from "@/components/layout/page-header"
+import { requireAdmin } from "@/lib/supabase/session"
 import { ModulePlaceholder } from "@/components/layout/module-placeholder"
 
 export const metadata = { title: "Expenses" }
 
-export default function ExpensesPage() {
+export default async function ExpensesPage() {
+  // Hiding the sidebar link is tidiness, not access control: without this a
+  // staff member who types the URL reaches the page.
+  await requireAdmin()
+
   return (
     <>
       <PageHeader title="Expenses" description="Rent, salaries, utilities and purchases." />

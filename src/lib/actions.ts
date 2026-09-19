@@ -41,6 +41,9 @@ function describeDbError(message: string): string {
   if (m.includes("row-level security") || m.includes("permission denied")) {
     return "You do not have permission to do this. Ask the administrator."
   }
+  if (m.includes("ledger_entries_amount_check")) {
+    return "The amount must be more than zero."
+  }
   return message
 }
 
@@ -242,4 +245,171 @@ export async function dischargePatient(
   revalidatePath("/patients", "layout")
   revalidatePath("/")
   return { ok: true, message: "Discharged. The final bill is shown on the stay." }
+}
+
+// ---------------------------------------------------------------------------
+// Billing
+// ---------------------------------------------------------------------------
+
+/** Charges, concessions, payments and what is still owed for one stay. */
+async function balanceFor(admissionId: string) {
+  const supabase = await createClient()
+  const { data } = await supabase.rpc("admission_balances")
+  const rows = (data ?? []) as {
+    admission_id: string
+    total_charges: number | string
+    total_discount: number | string
+    total_paid: number | string
+    balance: number | string
+  }[]
+  return rows.find((row) => row.admission_id === admissionId) ?? null
+}
+
+export async function recordPayment(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  const supabase = await createClient()
+
+  const admissionId = text(form, "admission_id")
+  const patientId = text(form, "patient_id")
+  const amount = Number(text(form, "amount"))
+  const method = text(form, "method") || "cash"
+  const occurredOn = text(form, "occurred_on") || todayISO()
+
+  if (!admissionId) return fail("Missing the stay this payment is for.")
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return fail("Enter how much was received. It must be more than zero.")
+  }
+  if (occurredOn > todayISO()) return fail("The payment date cannot be in the future.")
+
+  const { error } = await supabase.from("ledger_entries").insert({
+    direction: "in",
+    income_cat: "admission",
+    amount,
+    method,
+    occurred_on: occurredOn,
+    description: text(form, "description") || null,
+    patient_id: patientId || null,
+    admission_id: admissionId,
+    created_by: profile.id,
+  })
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/billing")
+  revalidatePath("/patients", "layout")
+  revalidatePath("/")
+
+  const balance = await balanceFor(admissionId)
+  const remaining = balance ? Number(balance.balance) : null
+
+  if (remaining !== null && remaining <= 0) {
+    return { ok: true, message: "Payment recorded. This bill is now settled." }
+  }
+  return {
+    ok: true,
+    message:
+      remaining === null
+        ? "Payment recorded."
+        : `Payment recorded. Rs ${remaining.toLocaleString("en-PK")} still owed.`,
+  }
+}
+
+/**
+ * A concession never touches the ledger: money not received is not income.
+ * Admin only, because reducing what a family owes is a money decision.
+ */
+export async function applyDiscount(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") {
+    return fail("Only an administrator can give a concession.")
+  }
+
+  const supabase = await createClient()
+  const admissionId = text(form, "admission_id")
+  const amount = Number(text(form, "amount"))
+  const reason = text(form, "reason")
+
+  if (!admissionId) return fail("Missing the stay.")
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return fail("Enter the concession amount. It must be more than zero.")
+  }
+  if (!reason) return fail("Give a reason for the concession — it goes on the record.")
+
+  // A concession larger than what is still owed would leave the family in
+  // credit for money that never changed hands, so it is refused rather than
+  // quietly clamped.
+  const balance = await balanceFor(admissionId)
+  if (balance && amount > Number(balance.balance)) {
+    return fail(
+      `That is more than the Rs ${Number(balance.balance).toLocaleString("en-PK")} still owed on this stay.`
+    )
+  }
+
+  const { error } = await supabase.from("admission_discounts").insert({
+    admission_id: admissionId,
+    amount,
+    reason,
+    created_by: profile.id,
+  })
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/billing")
+  revalidatePath("/patients", "layout")
+  return { ok: true, message: "Concession recorded against this bill." }
+}
+
+/**
+ * Corrections are reversals, never edits or deletes — the ledger is
+ * append-only, and the database refuses anything else.
+ */
+export async function reversePayment(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") {
+    return fail("Only an administrator can reverse a payment.")
+  }
+
+  const supabase = await createClient()
+  const paymentId = text(form, "payment_id")
+  const reason = text(form, "reason")
+
+  if (!paymentId) return fail("Missing the payment.")
+  if (!reason) return fail("Say why this payment is being reversed — it goes on the record.")
+
+  const { data: original, error: readError } = await supabase
+    .from("ledger_entries")
+    .select("id, amount, admission_id, patient_id")
+    .eq("id", paymentId)
+    .single()
+
+  if (readError || !original) return fail("That payment could not be found.")
+
+  const { error } = await supabase.from("ledger_entries").insert({
+    direction: "out",
+    expense_cat: "other",
+    amount: original.amount,
+    occurred_on: todayISO(),
+    description: `Reversal: ${reason}`,
+    patient_id: original.patient_id,
+    admission_id: original.admission_id,
+    reverses_id: original.id,
+    reversal_reason: reason,
+    created_by: profile.id,
+  })
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/billing")
+  revalidatePath("/patients", "layout")
+  revalidatePath("/")
+  return { ok: true, message: "Payment reversed. The original stays on record." }
 }
