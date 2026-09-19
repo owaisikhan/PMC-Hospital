@@ -10,6 +10,7 @@ import {
   Wallet,
 } from "lucide-react"
 
+import { FlipRevenueCard } from "@/components/flip-revenue-card"
 import { PageHeader } from "@/components/layout/page-header"
 import { PeriodFilter } from "@/components/period-filter"
 import { QuickActions, type QuickAction } from "@/components/quick-actions"
@@ -36,12 +37,11 @@ export default async function DashboardPage({
   const isAdmin = profile.role === "admin"
   const supabase = await createClient()
 
-  const [patients, admitted, expiring, money] = await Promise.all([
+  const [patients, admitted, expiring, money, periodAdmissions] = await Promise.all([
     supabase.from("patients").select("id", { count: "exact", head: true }),
-    supabase
-      .from("admissions")
-      .select("id", { count: "exact", head: true })
-      .is("discharged_on", null),
+    // Rows rather than a head count: the ward ids give both how many children
+    // are in and how many wards are in use, from one query.
+    supabase.from("admissions").select("ward_id").is("discharged_on", null),
     supabase
       .from("pharmacy_batches")
       .select("id", { count: "exact", head: true })
@@ -50,6 +50,11 @@ export default async function DashboardPage({
     // Invoker rights: staff get an empty result because RLS hides the ledger
     // from them. The role check below decides what to render, not what to ask.
     supabase.rpc("money_summary", { from_date: range.from, to_date: range.to }),
+    supabase
+      .from("admissions")
+      .select("id", { count: "exact", head: true })
+      .gte("admitted_on", range.from)
+      .lte("admitted_on", range.to),
   ])
 
   // Outstanding is not period-scoped on purpose: money owed is owed whatever
@@ -59,8 +64,11 @@ export default async function DashboardPage({
     : { data: null }
 
   const patientCount = patients.count ?? 0
-  const admittedCount = admitted.count ?? 0
+  const openStays = (admitted.data ?? []) as { ward_id: string }[]
+  const admittedCount = openStays.length
+  const wardsInUse = new Set(openStays.map((stay) => stay.ward_id)).size
   const expiringCount = expiring.count ?? 0
+  const periodAdmissionCount = periodAdmissions.count ?? 0
   const totals = foldMoneySummary(money.data as MoneySummaryRow[] | null)
 
   const share = (amount: number) =>
@@ -90,6 +98,29 @@ export default async function DashboardPage({
       />
 
       <div className="flex flex-col gap-5 px-4 py-6 sm:px-6">
+        {/* Who is in the building, before any money. Staff see this too. */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <StatCard
+            label="Currently admitted"
+            value={String(admittedCount)}
+            icon={BedDouble}
+            trend={`across ${wardsInUse} ${wardsInUse === 1 ? "ward" : "wards"}`}
+          />
+          <StatCard
+            label="Total patients"
+            value={String(patientCount)}
+            icon={UserPlus}
+            trend="registered at PMC"
+          />
+          <StatCard
+            label="Batches expiring in 90 days"
+            value={String(expiringCount)}
+            icon={Pill}
+            trend={expiringCount > 0 ? "Check pharmacy stock" : "Nothing expiring soon"}
+            trendDirection={expiringCount > 0 ? "down" : "flat"}
+          />
+        </div>
+
         {isAdmin ? (
           <section className="flex flex-col gap-3">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
@@ -104,10 +135,10 @@ export default async function DashboardPage({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <RevenueCard
+              <FlipRevenueCard
                 label="Admissions"
                 amount={totals.income.admission}
-                icon={BedDouble}
+                count={periodAdmissionCount}
                 sharePercent={share(totals.income.admission)}
               />
               <RevenueCard
@@ -154,18 +185,6 @@ export default async function DashboardPage({
         ) : null}
 
         <QuickActions actions={actions} />
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <StatCard label="Currently admitted" value={String(admittedCount)} icon={BedDouble} />
-          <StatCard label="Registered patients" value={String(patientCount)} icon={UserPlus} />
-          <StatCard
-            label="Batches expiring in 90 days"
-            value={String(expiringCount)}
-            icon={Pill}
-            trend={expiringCount > 0 ? "Check pharmacy stock" : "Nothing expiring soon"}
-            trendDirection={expiringCount > 0 ? "down" : "flat"}
-          />
-        </div>
       </div>
     </>
   )
