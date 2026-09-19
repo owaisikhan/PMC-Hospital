@@ -1,28 +1,24 @@
 import type { LucideIcon } from "lucide-react"
 import {
-  Activity,
   BedDouble,
-  CalendarDays,
-  CreditCard,
   FlaskConical,
   LayoutDashboard,
   Pill,
+  Receipt,
   Settings,
-  Stethoscope,
+  TrendingUp,
   Users,
+  Wallet,
 } from "lucide-react"
 
-export interface NavTab {
-  label: string
-  href: string
-}
+import type { UserRole } from "@/lib/supabase/session"
 
 export interface NavItem {
   label: string
   href: string
   icon: LucideIcon
-  /** Sub-tabs rendered in the page header when this module is active. */
-  tabs?: NavTab[]
+  /** Omitted means both roles. 'admin' hides the item from staff. */
+  requiresRole?: UserRole
 }
 
 export interface NavSection {
@@ -31,9 +27,9 @@ export interface NavSection {
 }
 
 /**
- * Single source of truth for the sidebar, the in-page tab strips and the
- * breadcrumb trail. Adding a module means adding an entry here plus the
- * matching route folder under `src/app/(app)/`.
+ * Single source of truth for the sidebar. The money sections are admin-only
+ * here for tidiness — the database enforces the same rule independently, so
+ * hiding a link is never the thing keeping staff out of the financials.
  */
 export const navSections: NavSection[] = [
   {
@@ -43,46 +39,33 @@ export const navSections: NavSection[] = [
   {
     label: "Clinical",
     items: [
-      {
-        label: "Patients",
-        href: "/patients",
-        icon: Users,
-        tabs: [
-          { label: "All patients", href: "/patients" },
-          { label: "Admitted", href: "/patients/admitted" },
-          { label: "Outpatient", href: "/patients/outpatient" },
-        ],
-      },
-      {
-        label: "Appointments",
-        href: "/appointments",
-        icon: CalendarDays,
-        tabs: [
-          { label: "Schedule", href: "/appointments" },
-          { label: "Requests", href: "/appointments/requests" },
-        ],
-      },
-      { label: "Doctors", href: "/doctors", icon: Stethoscope },
-      { label: "Wards & beds", href: "/wards", icon: BedDouble },
+      { label: "Patients", href: "/patients", icon: Users },
+      { label: "Admissions", href: "/admissions", icon: BedDouble },
       { label: "Laboratory", href: "/laboratory", icon: FlaskConical },
       { label: "Pharmacy", href: "/pharmacy", icon: Pill },
     ],
   },
   {
-    label: "Administration",
+    label: "Money",
     items: [
-      { label: "Billing", href: "/billing", icon: CreditCard },
-      { label: "Reports", href: "/reports", icon: Activity },
-      { label: "Settings", href: "/settings", icon: Settings },
+      { label: "Billing", href: "/billing", icon: Receipt },
+      { label: "Expenses", href: "/expenses", icon: Wallet, requiresRole: "admin" },
+      { label: "Reports", href: "/reports", icon: TrendingUp, requiresRole: "admin" },
     ],
+  },
+  {
+    label: "Administration",
+    items: [{ label: "Settings", href: "/settings", icon: Settings, requiresRole: "admin" }],
   },
 ]
 
-export const navItems: NavItem[] = navSections.flatMap((section) => section.items)
-
-/** Longest-prefix match so `/patients/admitted` still highlights `Patients`. */
-export function findActiveNavItem(pathname: string): NavItem | undefined {
-  return navItems
-    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
-    .sort((a, b) => b.href.length - a.href.length)[0]
+export function visibleSections(role: UserRole): NavSection[] {
+  return navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter(
+        (item) => !item.requiresRole || item.requiresRole === role
+      ),
+    }))
+    .filter((section) => section.items.length > 0)
 }

@@ -6,13 +6,13 @@ export const metadata = { title: "Patients" }
 export default function PatientsPage() {
   return (
     <>
-      <PageHeader title="Patients" description="Patient records, admissions and history." />
+      <PageHeader title="Patients" description="Child records and visit history." />
       <div className="px-4 py-6 sm:px-6">
         <ModulePlaceholder
           planned={[
-            "Searchable patient list with MRN, age, ward and status",
-            "Patient detail view with visit timeline and vitals",
-            "Admission and discharge flows",
+            "Register a child with MRN, father's name, date of birth and guardian phone",
+            "Searchable list with age shown in days, months or years",
+            "Patient detail with admission and lab history",
           ]}
         />
       </div>

@@ -1,13 +1,23 @@
 import { Sidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
+import { visibleSections } from "@/lib/navigation"
+import { requireProfile } from "@/lib/supabase/session"
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  // Every page under this layout is gated twice: here, and again by the
+  // database's row level security when it actually reads anything.
+  const profile = await requireProfile()
+
   return (
     <div className="flex h-dvh overflow-hidden">
-      <Sidebar />
+      <Sidebar sections={visibleSections(profile.role)} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <Topbar profile={profile} />
+        <main className="flex-1 overflow-y-auto bg-muted/30">{children}</main>
       </div>
     </div>
   )

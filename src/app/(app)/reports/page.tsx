@@ -6,13 +6,14 @@ export const metadata = { title: "Reports" }
 export default function ReportsPage() {
   return (
     <>
-      <PageHeader title="Reports" description="Operational and clinical reporting." />
+      <PageHeader title="Reports" description="Income, expenses and profit." />
       <div className="px-4 py-6 sm:px-6">
         <ModulePlaceholder
           planned={[
-            "Admissions, occupancy and revenue over time",
-            "Department-level activity breakdown",
-            "Exportable date-ranged reports",
+            "Daily cash summary: what came in, what went out",
+            "Monthly profit and loss by category",
+            "Ward occupancy and admission counts",
+            "Export a date range",
           ]}
         />
       </div>

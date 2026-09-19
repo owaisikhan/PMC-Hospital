@@ -1,34 +1,37 @@
-"use client"
+import Link from "next/link"
+import { LogOut } from "lucide-react"
 
-import { Bell, Menu, Search } from "lucide-react"
+import type { SessionProfile } from "@/lib/supabase/session"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("")
+}
 
-export function Topbar() {
+export function Topbar({ profile }: { profile: SessionProfile }) {
   return (
     <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-sm sm:px-6">
-      <Button variant="ghost" size="icon-sm" aria-label="Open navigation" className="lg:hidden">
-        <Menu />
-      </Button>
-
-      <div className="relative w-full max-w-sm">
-        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search patients, doctors, invoices…"
-          aria-label="Search"
-          className="pl-8"
-        />
-      </div>
-
-      <div className="ml-auto flex items-center gap-1.5">
-        <Button variant="ghost" size="icon-sm" aria-label="Notifications">
-          <Bell />
-        </Button>
-        <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-          OK
+      <div className="ml-auto flex items-center gap-3">
+        <span className="flex flex-col text-right leading-tight">
+          <span className="text-sm font-medium">{profile.fullName}</span>
+          <span className="text-xs text-muted-foreground capitalize">
+            {profile.role}
+          </span>
         </span>
+        <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+          {initials(profile.fullName)}
+        </span>
+        <Link
+          href="/auth/signout"
+          aria-label="Sign out"
+          className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <LogOut className="size-4" />
+        </Link>
       </div>
     </header>
   )

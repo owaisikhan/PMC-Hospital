@@ -6,13 +6,13 @@ export const metadata = { title: "Billing" }
 export default function BillingPage() {
   return (
     <>
-      <PageHeader title="Billing" description="Invoices, payments and insurance claims." />
+      <PageHeader title="Billing" description="Patient bills and payments received." />
       <div className="px-4 py-6 sm:px-6">
         <ModulePlaceholder
           planned={[
-            "Invoice list with paid, partial and overdue states",
-            "Itemized invoice builder",
-            "Payment recording and insurance claims",
+            "Bill per admission combining ward charges, pharmacy and lab",
+            "Record payments as cash, bank or card",
+            "Outstanding balance per patient",
           ]}
         />
       </div>
