@@ -39,7 +39,7 @@ export const navSections: NavSection[] = [
     label: "Clinical",
     items: [
       { label: "Patients", href: "/patients", icon: Users },
-      { label: "Admissions", href: "/admissions", icon: BedDouble },
+      { label: "Wards", href: "/wards", icon: BedDouble },
       { label: "Laboratory", href: "/laboratory", icon: FlaskConical },
       { label: "Pharmacy", href: "/pharmacy", icon: Pill },
     ],

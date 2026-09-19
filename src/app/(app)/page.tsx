@@ -1,5 +1,6 @@
 import {
   BedDouble,
+  CircleAlert,
   FlaskConical,
   Pill,
   Receipt,
@@ -51,6 +52,12 @@ export default async function DashboardPage({
     supabase.rpc("money_summary", { from_date: range.from, to_date: range.to }),
   ])
 
+  // Outstanding is not period-scoped on purpose: money owed is owed whatever
+  // month it was incurred in, and scoping it would hide the oldest debts.
+  const { data: outstanding } = isAdmin
+    ? await supabase.rpc("outstanding_total")
+    : { data: null }
+
   const patientCount = patients.count ?? 0
   const admittedCount = admitted.count ?? 0
   const expiringCount = expiring.count ?? 0
@@ -61,16 +68,16 @@ export default async function DashboardPage({
 
   const actions: QuickAction[] = [
     {
-      label: "Add Patient",
+      label: "Admit Patient",
+      href: "/wards",
+      icon: BedDouble,
+      caption: `${admittedCount} admitted`,
+    },
+    {
+      label: "Register Patient",
       href: "/patients",
       icon: UserPlus,
       caption: pluralize(patientCount, "patient"),
-    },
-    {
-      label: "New Admission",
-      href: "/admissions",
-      icon: BedDouble,
-      caption: `${admittedCount} admitted`,
     },
     { label: "Pharmacy Sale", href: "/pharmacy", icon: Pill },
     { label: "Lab Order", href: "/laboratory", icon: FlaskConical },
@@ -123,7 +130,7 @@ export default async function DashboardPage({
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <RevenueCard
                 label="Total income"
                 amount={totals.totalIncome}
@@ -141,6 +148,12 @@ export default async function DashboardPage({
                 amount={Math.abs(totals.net)}
                 icon={Wallet}
                 emphasis={totals.net < 0 ? "negative" : "positive"}
+              />
+              <RevenueCard
+                label="Outstanding (all time)"
+                amount={Number(outstanding ?? 0)}
+                icon={CircleAlert}
+                emphasis={Number(outstanding ?? 0) > 0 ? "negative" : "default"}
               />
             </div>
           </section>

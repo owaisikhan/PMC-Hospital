@@ -1,0 +1,83 @@
+"use client"
+
+import { useEffect, useRef } from "react"
+import { X } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+interface DialogProps {
+  open: boolean
+  onClose: () => void
+  title: string
+  description?: string
+  children: React.ReactNode
+  className?: string
+}
+
+/**
+ * Native <dialog> with showModal(): focus trapping, Escape, the inert
+ * background and the backdrop all come from the browser already correct.
+ *
+ * Deliberately no click-outside-to-close. A click event fires on the nearest
+ * common ancestor of mousedown and mouseup, so selecting text in a field and
+ * releasing a few pixels past the panel edge is indistinguishable from a
+ * backdrop click — and would throw away a half-typed patient record.
+ */
+export function Dialog({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  className,
+}: DialogProps) {
+  const ref = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (open && !el.open) el.showModal()
+    if (!open && el.open) el.close()
+  }, [open])
+
+  return (
+    <dialog
+      ref={ref}
+      onCancel={(event) => {
+        event.preventDefault()
+        onClose()
+      }}
+      aria-labelledby="dialog-title"
+      className={cn(
+        "m-0 max-h-dvh w-full max-w-lg bg-transparent p-0 backdrop:bg-black/40",
+        "max-sm:h-dvh max-sm:max-w-none",
+        "sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2",
+        className
+      )}
+    >
+      {open ? (
+        <div className="flex max-h-dvh flex-col overflow-hidden bg-card text-card-foreground shadow-xl sm:max-h-[85dvh] sm:rounded-xl">
+          <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+            <div className="flex flex-col gap-0.5">
+              <h2 id="dialog-title" className="text-lg font-semibold tracking-tight">
+                {title}
+              </h2>
+              {description ? (
+                <p className="text-base text-muted-foreground">{description}</p>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="-mt-1 -mr-1 flex size-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+          <div className="overflow-y-auto px-5 py-4">{children}</div>
+        </div>
+      ) : null}
+    </dialog>
+  )
+}
