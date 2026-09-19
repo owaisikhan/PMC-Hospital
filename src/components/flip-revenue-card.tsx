@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { BedDouble, RefreshCw } from "lucide-react"
+import { BedDouble, RefreshCw, Users } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { formatPKR, pluralize } from "@/lib/format"
@@ -9,8 +9,12 @@ import { formatPKR, pluralize } from "@/lib/format"
 interface FlipRevenueCardProps {
   label: string
   amount: number
-  /** How many admissions started in the period. */
-  count: number
+  /**
+   * Every child ever registered at PMC. Deliberately all-time, while the
+   * money on the front is scoped to the chosen period - the captions on both
+   * faces say which, so "10 patients" is not read as ten patients today.
+   */
+  patientCount: number
   sharePercent?: number
 }
 
@@ -30,25 +34,30 @@ interface FlipRevenueCardProps {
 export function FlipRevenueCard({
   label,
   amount,
-  count,
+  patientCount,
   sharePercent,
 }: FlipRevenueCardProps) {
   const [flipped, setFlipped] = useState(false)
 
+  // Each face carries its own heading: the back is a headcount, not money,
+  // so labelling it "Admissions" read as if 10 people were admitted.
   const face = (
+    title: string,
     primary: string,
     caption: string,
     meter: boolean,
     hidden: boolean
-  ) => (
+  ) => {
+    const Icon = meter ? BedDouble : Users
+    return (
     <CardContent
       aria-hidden={hidden}
       className="flex h-full flex-col gap-2 pt-5 text-left"
     >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="text-sm text-muted-foreground">{title}</p>
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <BedDouble className="size-4" aria-hidden />
+          <Icon className="size-4" aria-hidden />
         </span>
       </div>
 
@@ -75,7 +84,8 @@ export function FlipRevenueCard({
         </p>
       )}
     </CardContent>
-  )
+    )
+  }
 
   return (
     <div className="flip-scene">
@@ -85,19 +95,20 @@ export function FlipRevenueCard({
         aria-pressed={flipped}
         aria-label={
           flipped
-            ? `${label}: ${pluralize(count, "admission")} this period. Show income instead.`
-            : `${label}: ${formatPKR(amount)} income. Show the number of admissions instead.`
+            ? `${pluralize(patientCount, "patient")} registered at PMC in total. Show admissions income instead.`
+            : `${label}: ${formatPKR(amount)} income for this period. Show the total number of registered patients instead.`
         }
         className="block w-full rounded-xl text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
       >
         <div className="flip-inner" data-flipped={flipped}>
           <Card className="flip-face">
-            {face(formatPKR(amount), "Tap for the number of admissions", true, flipped)}
+            {face(label, formatPKR(amount), "Tap for total patients", true, flipped)}
           </Card>
           <Card className="flip-face flip-face-back">
             {face(
-              pluralize(count, "admission"),
-              "Tap for the income",
+              "Patients",
+              pluralize(patientCount, "patient"),
+              "Registered at PMC · all time",
               false,
               !flipped
             )}
@@ -108,7 +119,7 @@ export function FlipRevenueCard({
       {/* Announced on change, so the new figure is read without moving focus. */}
       <p className="sr-only" aria-live="polite">
         {flipped
-          ? `${pluralize(count, "admission")} this period`
+          ? `${pluralize(patientCount, "patient")} registered at PMC in total`
           : `${formatPKR(amount)} from admissions this period`}
       </p>
     </div>

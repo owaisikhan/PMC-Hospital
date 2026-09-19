@@ -6,7 +6,6 @@ import {
   Receipt,
   TrendingDown,
   TrendingUp,
-  UserPlus,
   Wallet,
 } from "lucide-react"
 
@@ -37,7 +36,7 @@ export default async function DashboardPage({
   const isAdmin = profile.role === "admin"
   const supabase = await createClient()
 
-  const [patients, admitted, expiring, money, periodAdmissions] = await Promise.all([
+  const [patients, admitted, expiring, money] = await Promise.all([
     supabase.from("patients").select("id", { count: "exact", head: true }),
     // Rows rather than a head count: the ward ids give both how many children
     // are in and how many wards are in use, from one query.
@@ -50,11 +49,6 @@ export default async function DashboardPage({
     // Invoker rights: staff get an empty result because RLS hides the ledger
     // from them. The role check below decides what to render, not what to ask.
     supabase.rpc("money_summary", { from_date: range.from, to_date: range.to }),
-    supabase
-      .from("admissions")
-      .select("id", { count: "exact", head: true })
-      .gte("admitted_on", range.from)
-      .lte("admitted_on", range.to),
   ])
 
   // Outstanding is not period-scoped on purpose: money owed is owed whatever
@@ -68,7 +62,6 @@ export default async function DashboardPage({
   const admittedCount = openStays.length
   const wardsInUse = new Set(openStays.map((stay) => stay.ward_id)).size
   const expiringCount = expiring.count ?? 0
-  const periodAdmissionCount = periodAdmissions.count ?? 0
   const totals = foldMoneySummary(money.data as MoneySummaryRow[] | null)
 
   const share = (amount: number) =>
@@ -99,18 +92,12 @@ export default async function DashboardPage({
 
       <div className="flex flex-col gap-5 px-4 py-6 sm:px-6">
         {/* Who is in the building, before any money. Staff see this too. */}
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <StatCard
             label="Currently admitted"
             value={String(admittedCount)}
             icon={BedDouble}
             trend={`across ${wardsInUse} ${wardsInUse === 1 ? "ward" : "wards"}`}
-          />
-          <StatCard
-            label="Total patients"
-            value={String(patientCount)}
-            icon={UserPlus}
-            trend="registered at PMC"
           />
           <StatCard
             label="Batches expiring in 90 days"
@@ -138,7 +125,7 @@ export default async function DashboardPage({
               <FlipRevenueCard
                 label="Admissions"
                 amount={totals.income.admission}
-                count={periodAdmissionCount}
+                patientCount={patientCount}
                 sharePercent={share(totals.income.admission)}
               />
               <RevenueCard
