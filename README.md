@@ -33,8 +33,10 @@ npm run dev
 | **admin** | Everything — money, reports, rates, staff, user accounts | — |
 | **staff** | Register patients, admit and discharge, pharmacy sales, lab orders, record income | Read the ledger, expenses, salaries or reports |
 
-New signups are created **inactive** and must be activated by an admin before
-they can reach anything.
+**The first account to sign up becomes the active administrator.** Every signup
+after that is created as **inactive staff** and must be activated by an admin
+before it can reach anything. Visit `/signup` on a fresh install to create the
+administrator.
 
 Access is enforced by Postgres row level security, not by the UI. Hiding a
 sidebar link is a tidiness measure; the database refuses the read regardless.
@@ -79,6 +81,8 @@ Migrations live in `supabase/migrations/` and are applied in order:
 | `0003_row_level_security.sql` | RLS policies, append-only ledger, new-user trigger |
 | `0004_seed_reference_data.sql` | PMC's wards, charge rates and settings |
 | `0005_security_hardening.sql` | Linter fixes: view security_invoker, search_path, function grants |
+| `0006_first_user_becomes_admin.sql` | Bootstrap: first signup becomes an active admin |
+| `0007_setup_completed_check.sql` | `setup_completed()` so the signup page can tell first-run from later |
 
 ## Structure
 
@@ -101,8 +105,8 @@ src/
 
 ## Status
 
-**Phase 0 complete** — database, roles, login and app shell are in place and the
-whole site is gated. Module screens are being built one at a time; routes not yet
+**Phase 0 complete** — database, roles, signup, login and app shell are in place
+and the whole site is gated. Module screens are being built one at a time; routes not yet
 built render a short list of what is coming.
 
 Build order: patients and admissions → pharmacy → laboratory → expenses and

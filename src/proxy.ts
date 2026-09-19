@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server"
 // Next.js 16 renamed Middleware to Proxy. This runs before every page render
 // and does two jobs: refresh the Supabase session cookie, and keep the whole
 // site behind login.
-const PUBLIC_PATHS = ["/login", "/pending-approval", "/auth"]
+const PUBLIC_PATHS = ["/login", "/signup", "/pending-approval", "/auth"]
 
 export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -51,7 +51,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  if (user && pathname === "/login") {
+  if (user && (pathname === "/login" || pathname === "/signup")) {
     const homeUrl = request.nextUrl.clone()
     homeUrl.pathname = "/"
     homeUrl.search = ""
