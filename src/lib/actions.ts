@@ -144,7 +144,7 @@ export async function admitPatient(
 
   if (!result.ok) return result
 
-  revalidatePath("/wards")
+  revalidatePath("/patients", "layout")
   revalidatePath("/")
   return { ok: true, message: "Admitted.", id: admission.id }
 }
@@ -214,7 +214,7 @@ export async function addSupport(
 
   if (!result.ok) return result
 
-  revalidatePath("/wards")
+  revalidatePath("/patients", "layout")
   return { ok: true, message: "Support added to this stay." }
 }
 
@@ -239,7 +239,7 @@ export async function dischargePatient(
 
   if (error) return fail(describeDbError(error.message))
 
-  revalidatePath("/wards")
+  revalidatePath("/patients", "layout")
   revalidatePath("/")
   return { ok: true, message: "Discharged. The final bill is shown on the stay." }
 }

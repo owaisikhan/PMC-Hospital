@@ -69,15 +69,9 @@ export default async function DashboardPage({
   const actions: QuickAction[] = [
     {
       label: "Admit Patient",
-      href: "/wards",
-      icon: BedDouble,
-      caption: `${admittedCount} admitted`,
-    },
-    {
-      label: "Register Patient",
       href: "/patients",
-      icon: UserPlus,
-      caption: pluralize(patientCount, "patient"),
+      icon: BedDouble,
+      caption: `${admittedCount} admitted · ${pluralize(patientCount, "patient")}`,
     },
     { label: "Pharmacy Sale", href: "/pharmacy", icon: Pill },
     { label: "Lab Order", href: "/laboratory", icon: FlaskConical },

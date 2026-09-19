@@ -9,7 +9,7 @@ import { FormMessage } from "@/components/ui/form-message"
 import { addSupport, dischargePatient, type ActionResult } from "@/lib/actions"
 import { todayISO } from "@/lib/dates"
 import { formatPKR } from "@/lib/format"
-import type { RateOption } from "@/components/wards/admit-dialog"
+import type { RateOption } from "@/components/patients/admit-dialog"
 
 const smallButton =
   "flex h-11 items-center gap-2 rounded-lg border border-border px-3.5 text-base font-medium transition-colors hover:bg-muted"

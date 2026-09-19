@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react"
 import {
-  BedDouble,
   FlaskConical,
   LayoutDashboard,
   Pill,
@@ -39,7 +38,6 @@ export const navSections: NavSection[] = [
     label: "Clinical",
     items: [
       { label: "Patients", href: "/patients", icon: Users },
-      { label: "Wards", href: "/wards", icon: BedDouble },
       { label: "Laboratory", href: "/laboratory", icon: FlaskConical },
       { label: "Pharmacy", href: "/pharmacy", icon: Pill },
     ],

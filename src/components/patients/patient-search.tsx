@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Search } from "lucide-react"
 
@@ -11,24 +11,27 @@ import { controlClass } from "@/components/ui/field"
  * walks through searches. Debounced, and scroll is preserved because only the
  * list below changes.
  */
-export function PatientSearch({ initialQuery }: { initialQuery: string }) {
+export function PatientSearch({
+  initialQuery,
+  filter,
+}: {
+  initialQuery: string
+  filter: string
+}) {
   const router = useRouter()
-  const params = useSearchParams()
   const [value, setValue] = useState(initialQuery)
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const next = new URLSearchParams(params.toString())
+      const next = new URLSearchParams()
       if (value.trim()) next.set("q", value.trim())
-      else next.delete("q")
-      next.delete("page")
+      // The filter rides along: two controls on one page each carry the
+      // other's value, or changing one silently resets the other.
+      next.set("show", filter)
       router.replace(`/patients?${next.toString()}`, { scroll: false })
     }, 300)
     return () => clearTimeout(timer)
-    // params is intentionally not a dependency: reacting to it would re-fire
-    // the search every time the URL it just wrote comes back.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, router])
+  }, [value, filter, router])
 
   return (
     <div className="relative w-full sm:max-w-md">

@@ -109,5 +109,11 @@ src/
 and the whole site is gated. Module screens are being built one at a time; routes not yet
 built render a short list of what is coming.
 
-Build order: patients and admissions → pharmacy → laboratory → expenses and
-salaries → billing → reports.
+Patients is the single place for clinical work: register a child, admit them,
+and see who is in the hospital via the Admitted / All filter. Each child has a
+detail page holding their record and every stay with its itemised bill. There
+is no separate Wards section - filtering a list beats splitting it across
+routes, which would make someone decide where a child lives before they can
+look for them.
+
+Build order: billing → expenses and salaries → pharmacy → laboratory.
