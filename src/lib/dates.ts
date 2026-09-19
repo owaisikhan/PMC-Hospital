@@ -76,3 +76,17 @@ export function periodRange(period: Period, today = todayISO()): DateRange {
   const sinceMonday = weekday === 0 ? 6 : weekday - 1
   return { from: addDaysISO(today, -sinceMonday), to: today, label: PERIOD_LABELS.week }
 }
+
+/**
+ * A YYYY-MM-DD business day as an absolute instant range, for filtering
+ * timestamptz columns. `created_at` is stored in UTC, so a plain date
+ * comparison would slice the day at the wrong hour: midnight in Karachi is
+ * 19:00 the previous day in UTC.
+ */
+export function businessDayStart(iso: string): string {
+  return `${iso}T00:00:00+05:00`
+}
+
+export function businessDayEnd(iso: string): string {
+  return `${iso}T23:59:59.999+05:00`
+}

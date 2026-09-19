@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { motion, useReducedMotion } from "motion/react"
 import { BedDouble, RefreshCw, Users } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,38 +10,29 @@ import { formatPKR, pluralize } from "@/lib/format"
 interface FlipRevenueCardProps {
   label: string
   amount: number
-  /**
-   * Every child ever registered at PMC. Deliberately all-time, while the
-   * money on the front is scoped to the chosen period - the captions on both
-   * faces say which, so "10 patients" is not read as ten patients today.
-   */
+  /** Children registered inside the same period as the money on the front. */
   patientCount: number
+  /** Human-readable period, e.g. "this week", used in the captions. */
+  periodLabel: string
   sharePercent?: number
 }
 
 /**
- * The icon is imported here rather than taken as a prop. A Lucide icon is a
+ * The icons are imported here rather than taken as props. A Lucide icon is a
  * React component, and a component cannot be serialised across the
- * server-to-client boundary - passing it in threw "Functions cannot be passed
+ * server-to-client boundary - passing one in threw "Functions cannot be passed
  * directly to Client Components" at request time while still building cleanly.
- */
-
-/**
- * The admissions card shows money by default and the number of admissions when
- * clicked. Built as a real <button>, so it works from the keyboard and is
- * announced as a control rather than looking like decoration; the face that is
- * hidden is also hidden from screen readers, so only one figure is read out.
  */
 export function FlipRevenueCard({
   label,
   amount,
   patientCount,
+  periodLabel,
   sharePercent,
 }: FlipRevenueCardProps) {
   const [flipped, setFlipped] = useState(false)
+  const reduceMotion = useReducedMotion()
 
-  // Each face carries its own heading: the back is a headcount, not money,
-  // so labelling it "Admissions" read as if 10 people were admitted.
   const face = (
     title: string,
     primary: string,
@@ -50,77 +42,101 @@ export function FlipRevenueCard({
   ) => {
     const Icon = meter ? BedDouble : Users
     return (
-    <CardContent
-      aria-hidden={hidden}
-      className="flex h-full flex-col gap-2 pt-5 text-left"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm text-muted-foreground">{title}</p>
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="size-4" aria-hidden />
-        </span>
-      </div>
-
-      <p className="text-xl font-semibold tracking-tight whitespace-nowrap tabular-nums sm:text-2xl">
-        {primary}
-      </p>
-
-      {meter && sharePercent !== undefined ? (
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${Math.min(100, sharePercent)}%` }}
-            />
-          </div>
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {Math.round(sharePercent)}%
+      <CardContent
+        aria-hidden={hidden}
+        className="flex h-full flex-col gap-2 pt-5 text-left"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-sm text-muted-foreground">{title}</p>
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon className="size-4" aria-hidden />
           </span>
         </div>
-      ) : (
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <RefreshCw className="size-3" aria-hidden />
-          {caption}
+
+        <p className="text-xl font-semibold tracking-tight whitespace-nowrap tabular-nums sm:text-2xl">
+          {primary}
         </p>
-      )}
-    </CardContent>
+
+        {meter && sharePercent !== undefined ? (
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+              <motion.div
+                className="h-full rounded-full bg-primary"
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(100, sharePercent)}%` }}
+                transition={
+                  reduceMotion
+                    ? { duration: 0 }
+                    : { type: "spring", stiffness: 120, damping: 20 }
+                }
+              />
+            </div>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {Math.round(sharePercent)}%
+            </span>
+          </div>
+        ) : (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <RefreshCw className="size-3" aria-hidden />
+            {caption}
+          </p>
+        )}
+      </CardContent>
     )
   }
 
   return (
     <div className="flip-scene">
-      <button
+      <motion.button
         type="button"
         onClick={() => setFlipped((previous) => !previous)}
         aria-pressed={flipped}
         aria-label={
           flipped
-            ? `${pluralize(patientCount, "patient")} registered at PMC in total. Show admissions income instead.`
-            : `${label}: ${formatPKR(amount)} income for this period. Show the total number of registered patients instead.`
+            ? `${pluralize(patientCount, "patient")} registered ${periodLabel}. Show admissions income instead.`
+            : `${label}: ${formatPKR(amount)} income ${periodLabel}. Show the number of patients registered instead.`
         }
         className="block w-full rounded-xl text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        whileTap={reduceMotion ? undefined : { scale: 0.98 }}
       >
-        <div className="flip-inner" data-flipped={flipped}>
+        <motion.div
+          className="relative"
+          style={{ transformStyle: "preserve-3d" }}
+          animate={{ rotateY: flipped ? 180 : 0 }}
+          // A spring reads as the card having weight; someone who has asked for
+          // less motion still gets the new figure, just without the turn.
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : { type: "spring", stiffness: 260, damping: 30, mass: 0.9 }
+          }
+        >
           <Card className="flip-face">
-            {face(label, formatPKR(amount), "Tap for total patients", true, flipped)}
+            {face(
+              label,
+              formatPKR(amount),
+              "Tap for patients registered",
+              true,
+              flipped
+            )}
           </Card>
           <Card className="flip-face flip-face-back">
             {face(
               "Patients",
               pluralize(patientCount, "patient"),
-              "Registered at PMC · all time",
+              `Registered ${periodLabel}`,
               false,
               !flipped
             )}
           </Card>
-        </div>
-      </button>
+        </motion.div>
+      </motion.button>
 
       {/* Announced on change, so the new figure is read without moving focus. */}
       <p className="sr-only" aria-live="polite">
         {flipped
-          ? `${pluralize(patientCount, "patient")} registered at PMC in total`
-          : `${formatPKR(amount)} from admissions this period`}
+          ? `${pluralize(patientCount, "patient")} registered ${periodLabel}`
+          : `${formatPKR(amount)} from admissions ${periodLabel}`}
       </p>
     </div>
   )

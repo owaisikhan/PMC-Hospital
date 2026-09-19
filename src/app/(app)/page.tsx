@@ -15,7 +15,14 @@ import { PeriodFilter } from "@/components/period-filter"
 import { QuickActions, type QuickAction } from "@/components/quick-actions"
 import { RevenueCard } from "@/components/revenue-card"
 import { StatCard } from "@/components/stat-card"
-import { daysFromNowISO, isPeriod, periodRange, type Period } from "@/lib/dates"
+import {
+  businessDayEnd,
+  businessDayStart,
+  daysFromNowISO,
+  isPeriod,
+  periodRange,
+  type Period,
+} from "@/lib/dates"
 import { pluralize } from "@/lib/format"
 import { foldMoneySummary, type MoneySummaryRow } from "@/lib/money"
 import { createClient } from "@/lib/supabase/server"
@@ -36,8 +43,15 @@ export default async function DashboardPage({
   const isAdmin = profile.role === "admin"
   const supabase = await createClient()
 
-  const [patients, admitted, expiring, money] = await Promise.all([
+  const [patients, periodPatients, admitted, expiring, money] = await Promise.all([
     supabase.from("patients").select("id", { count: "exact", head: true }),
+    // Registered inside the chosen period, so both faces of the card answer
+    // the same question.
+    supabase
+      .from("patients")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", businessDayStart(range.from))
+      .lte("created_at", businessDayEnd(range.to)),
     // Rows rather than a head count: the ward ids give both how many children
     // are in and how many wards are in use, from one query.
     supabase.from("admissions").select("ward_id").is("discharged_on", null),
@@ -58,6 +72,7 @@ export default async function DashboardPage({
     : { data: null }
 
   const patientCount = patients.count ?? 0
+  const periodPatientCount = periodPatients.count ?? 0
   const openStays = (admitted.data ?? []) as { ward_id: string }[]
   const admittedCount = openStays.length
   const wardsInUse = new Set(openStays.map((stay) => stay.ward_id)).size
@@ -125,7 +140,8 @@ export default async function DashboardPage({
               <FlipRevenueCard
                 label="Admissions"
                 amount={totals.income.admission}
-                patientCount={patientCount}
+                patientCount={periodPatientCount}
+                periodLabel={range.label.toLowerCase()}
                 sharePercent={share(totals.income.admission)}
               />
               <RevenueCard
