@@ -4,11 +4,19 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { HeartPulse } from "lucide-react"
 
-import type { NavSection } from "@/lib/navigation"
+import { visibleSections } from "@/lib/navigation"
+import type { UserRole } from "@/lib/roles"
 import { cn } from "@/lib/utils"
 
-export function Sidebar({ sections }: { sections: NavSection[] }) {
+/**
+ * Takes the role rather than a ready-made section list: the sections carry
+ * Lucide icon components, and a React component cannot be serialised across the
+ * server-to-client boundary. Building the list here keeps only a plain string
+ * crossing over.
+ */
+export function Sidebar({ role }: { role: UserRole }) {
   const pathname = usePathname()
+  const sections = visibleSections(role)
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">

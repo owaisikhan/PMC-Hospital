@@ -11,7 +11,7 @@ import {
   Wallet,
 } from "lucide-react"
 
-import type { UserRole } from "@/lib/supabase/session"
+import type { UserRole } from "@/lib/roles"
 
 export interface NavItem {
   label: string

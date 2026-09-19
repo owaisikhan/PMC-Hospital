@@ -1,6 +1,5 @@
 import { Sidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
-import { visibleSections } from "@/lib/navigation"
 import { requireProfile } from "@/lib/supabase/session"
 
 export default async function AppLayout({
@@ -14,7 +13,7 @@ export default async function AppLayout({
 
   return (
     <div className="flex h-dvh overflow-hidden">
-      <Sidebar sections={visibleSections(profile.role)} />
+      <Sidebar role={profile.role} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar profile={profile} />
         <main className="flex-1 overflow-y-auto bg-muted/30">{children}</main>

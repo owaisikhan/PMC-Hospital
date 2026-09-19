@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation"
 
+import type { UserRole } from "@/lib/roles"
 import { createClient } from "./server"
 import { isSupabaseConfigured } from "./env"
 
-export type UserRole = "admin" | "staff"
+export type { UserRole }
 
 export interface SessionProfile {
   id: string

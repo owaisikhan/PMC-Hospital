@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { ShieldAlert } from "lucide-react"
 
 export const metadata = { title: "Awaiting approval" }
@@ -15,12 +14,14 @@ export default function PendingApprovalPage() {
           Your account has been created but an administrator has not activated it
           yet. Please ask the hospital administrator to enable your access.
         </p>
-        <Link
-          href="/auth/signout"
-          className="mt-4 inline-block text-sm text-primary underline-offset-4 hover:underline"
-        >
-          Sign out
-        </Link>
+        <form action="/auth/signout" method="post" className="mt-4">
+          <button
+            type="submit"
+            className="text-sm text-primary underline-offset-4 hover:underline"
+          >
+            Sign out
+          </button>
+        </form>
       </div>
     </main>
   )
