@@ -163,7 +163,7 @@ export function DischargeButton({
           <input type="hidden" name="admission_id" value={admissionId} />
 
           <p className="rounded-lg bg-muted px-3 py-2.5 text-base">
-            Charges so far:{" "}
+            Current bill:{" "}
             <span className="font-semibold whitespace-nowrap tabular-nums">
               {formatPKR(runningTotal)}
             </span>

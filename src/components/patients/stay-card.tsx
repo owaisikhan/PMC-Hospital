@@ -75,7 +75,7 @@ export function StayCard({
 
         <div className="flex flex-col items-end gap-0.5">
           <span className="text-sm text-muted-foreground">
-            {isOpen ? "Charges so far" : "Final bill"}
+            {isOpen ? "Current bill" : "Final bill"}
           </span>
           <span className="text-2xl font-semibold tracking-tight whitespace-nowrap tabular-nums">
             {formatPKR(total)}

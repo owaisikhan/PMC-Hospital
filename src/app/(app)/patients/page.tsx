@@ -182,7 +182,11 @@ export default async function PatientsPage({
                       href={`/patients/${patient.id}`}
                       className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors hover:bg-muted/50"
                     >
-                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      {/* A floor on the name block: with fixed-width detail
+                          columns and only min-w-0 here, the name was squeezed
+                          to two pixels at 1024px. Below that the details wrap
+                          onto their own line instead. */}
+                      <div className="flex min-w-[15rem] flex-1 flex-col gap-0.5">
                         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                           <span className="text-lg font-semibold tracking-tight">
                             {patient.full_name}
@@ -201,34 +205,36 @@ export default async function PatientsPage({
                         ) : null}
                       </div>
 
-                      <dl className="flex flex-wrap items-center gap-x-6 gap-y-1.5 text-base">
-                        <div className="flex flex-col">
-                          <dt className="text-sm text-muted-foreground">MRN</dt>
-                          <dd className="font-medium whitespace-nowrap tabular-nums">
-                            {patient.mrn}
-                          </dd>
-                        </div>
-                        <div className="flex flex-col">
-                          <dt className="text-sm text-muted-foreground">Age</dt>
-                          <dd className="font-medium whitespace-nowrap">
-                            {formatAge(patient.date_of_birth)}
-                          </dd>
-                        </div>
-                        {stay ? (
-                          <div className="flex flex-col">
-                            <dt className="text-sm text-muted-foreground">Charges so far</dt>
-                            <dd className="font-semibold whitespace-nowrap tabular-nums">
-                              {formatPKR(runningTotal)}
-                            </dd>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col">
-                            <dt className="text-sm text-muted-foreground">Phone</dt>
-                            <dd className="font-medium whitespace-nowrap tabular-nums">
-                              {patient.guardian_phone ?? "—"}
-                            </dd>
-                          </div>
-                        )}
+                      {/* Fixed column widths, and every cell always rendered,
+                          so the columns line up down the list instead of each
+                          row starting wherever the previous one ended. */}
+                      <dl className="flex flex-wrap items-center gap-x-5 gap-y-2 text-base">
+                        <Detail label="MRN" value={patient.mrn} numeric width="w-36" />
+                        <Detail
+                          label="Age"
+                          value={formatAge(patient.date_of_birth)}
+                          width="w-24"
+                        />
+                        <Detail
+                          label="Gender"
+                          value={patient.gender}
+                          capitalize
+                          width="w-20"
+                        />
+                        <Detail
+                          label="Phone"
+                          value={patient.guardian_phone ?? "—"}
+                          numeric
+                          width="w-32"
+                        />
+                        <Detail
+                          label="Current bill"
+                          value={stay ? formatPKR(runningTotal) : "—"}
+                          numeric
+                          emphasis={Boolean(stay)}
+                          width="w-28"
+                          align="right"
+                        />
                       </dl>
 
                       <ChevronRight
@@ -251,6 +257,54 @@ export default async function PatientsPage({
         )}
       </div>
     </>
+  )
+}
+
+/** One cell of the patient row. Kept as a component so every column shares the
+ *  same label size, weight and alignment rather than drifting apart. */
+function Detail({
+  label,
+  value,
+  numeric,
+  capitalize,
+  emphasis,
+  width,
+  align = "left",
+}: {
+  label: string
+  value: string
+  /** Tabular figures, so MRNs, phone numbers and money line up. */
+  numeric?: boolean
+  capitalize?: boolean
+  emphasis?: boolean
+  /** Fixed width keeps the column aligned across rows. */
+  width?: string
+  align?: "left" | "right"
+}) {
+  return (
+    <div
+      className={[
+        "flex flex-col",
+        width ?? "",
+        align === "right" ? "items-end text-right" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd
+        className={[
+          "whitespace-nowrap",
+          emphasis ? "font-semibold" : "font-medium",
+          numeric ? "tabular-nums" : "",
+          capitalize ? "capitalize" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {value}
+      </dd>
+    </div>
   )
 }
 
