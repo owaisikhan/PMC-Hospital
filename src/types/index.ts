@@ -1,5 +1,15 @@
 export type Gender = "male" | "female" | "other"
 
+export type IncomeCategory = "admission" | "pharmacy" | "lab" | "other"
+
+export type ExpenseCategory =
+  | "rent"
+  | "salaries"
+  | "electricity"
+  | "pharmacy_purchase"
+  | "lab_payout"
+  | "other"
+
 export type PatientStatus = "admitted" | "outpatient" | "discharged" | "critical"
 
 export type AppointmentStatus =

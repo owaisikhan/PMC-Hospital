@@ -6,7 +6,6 @@ import {
   Pill,
   Receipt,
   Settings,
-  TrendingUp,
   Users,
   Wallet,
 } from "lucide-react"
@@ -50,7 +49,6 @@ export const navSections: NavSection[] = [
     items: [
       { label: "Billing", href: "/billing", icon: Receipt },
       { label: "Expenses", href: "/expenses", icon: Wallet, requiresRole: "admin" },
-      { label: "Reports", href: "/reports", icon: TrendingUp, requiresRole: "admin" },
     ],
   },
   {
