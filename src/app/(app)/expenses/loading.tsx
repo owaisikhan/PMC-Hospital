@@ -9,7 +9,7 @@ import { Skeleton, SkeletonLine } from "@/components/ui/skeleton"
 // The Expenses tab is what opens by default, so that is what is placeheld.
 const COLUMNS: SkeletonColumn[] = [
   { label: "Date", bar: "w-20" },
-  { label: "What it was", bar: "w-44" },
+  { label: "Particulars", bar: "w-44" },
   { label: "Category", bar: "w-20", subBar: "w-24" },
   { label: "Paid by", bar: "w-14" },
   { label: "Amount", bar: "w-20", align: "right" },
@@ -25,7 +25,7 @@ export default function ExpensesLoading() {
         description="Every rupee leaving PMC — running costs, salaries, and who is on the payroll."
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <FilterGroupSkeleton width="w-64" />
+            <FilterGroupSkeleton width="w-52" />
             <Skeleton className="h-11 w-44 rounded-lg" delay={0.08} />
           </div>
         }

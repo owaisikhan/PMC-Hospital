@@ -1,27 +1,28 @@
-import type { LucideIcon } from "lucide-react"
+import type { LucideIcon } from "lucide-react";
 import {
   FlaskConical,
+  IdCard,
   LayoutDashboard,
   Pill,
   Receipt,
   Settings,
   Users,
   Wallet,
-} from "lucide-react"
+} from "lucide-react";
 
-import type { UserRole } from "@/lib/roles"
+import type { UserRole } from "@/lib/roles";
 
 export interface NavItem {
-  label: string
-  href: string
-  icon: LucideIcon
+  label: string;
+  href: string;
+  icon: LucideIcon;
   /** Omitted means both roles. 'admin' hides the item from staff. */
-  requiresRole?: UserRole
+  requiresRole?: UserRole;
 }
 
 export interface NavSection {
-  label: string
-  items: NavItem[]
+  label: string;
+  items: NavItem[];
 }
 
 /**
@@ -46,22 +47,35 @@ export const navSections: NavSection[] = [
     label: "Money",
     items: [
       { label: "Billing", href: "/billing", icon: Receipt },
-      { label: "Expenses", href: "/expenses", icon: Wallet, requiresRole: "admin" },
+      {
+        label: "Expenses",
+        href: "/expenses",
+        icon: Wallet,
+        requiresRole: "admin",
+      },
     ],
   },
   {
     label: "Administration",
-    items: [{ label: "Settings", href: "/settings", icon: Settings, requiresRole: "admin" }],
+    items: [
+      { label: "Staff", href: "/staff", icon: IdCard, requiresRole: "admin" },
+      {
+        label: "Settings",
+        href: "/settings",
+        icon: Settings,
+        requiresRole: "admin",
+      },
+    ],
   },
-]
+];
 
 export function visibleSections(role: UserRole): NavSection[] {
   return navSections
     .map((section) => ({
       ...section,
       items: section.items.filter(
-        (item) => !item.requiresRole || item.requiresRole === role
+        (item) => !item.requiresRole || item.requiresRole === role,
       ),
     }))
-    .filter((section) => section.items.length > 0)
+    .filter((section) => section.items.length > 0);
 }

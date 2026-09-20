@@ -103,10 +103,10 @@ export function RecordExpenseButton() {
           </div>
 
           <Field
-            label="What this was"
+            label="Particulars"
             htmlFor="description"
             required
-            hint="A bare amount is impossible to check against a receipt months later."
+            hint="What the money actually went on. A bare amount is impossible to check against a receipt months later."
           >
             <input
               id="description"
