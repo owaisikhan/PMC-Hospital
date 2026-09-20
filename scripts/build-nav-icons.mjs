@@ -28,6 +28,8 @@ const CROPS = {
   laboratory: "572 400 252 252",
   billing: "488 176 442 442",
   patients: "560 150 440 440",
+  // Both figures whole, with the cross behind them still legible at 20px.
+  staff: "205 160 400 400",
   // Already square, and built as a tile with its own background.
   expenses: "0 0 800 800",
 }

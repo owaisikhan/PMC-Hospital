@@ -90,10 +90,16 @@ export const navSections: NavSection[] = [
     ],
   },
   {
-    // Staff and Settings have no artwork yet, so they keep their glyphs.
+    // Settings has no artwork yet, so it keeps its glyph.
     label: "Administration",
     items: [
-      { label: "Staff", href: "/staff", icon: IdCard, requiresRole: "admin" },
+      {
+        label: "Staff",
+        href: "/staff",
+        icon: IdCard,
+        image: "/icons/staff.svg",
+        requiresRole: "admin",
+      },
       {
         label: "Settings",
         href: "/settings",
