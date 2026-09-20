@@ -33,8 +33,10 @@ const CROPS = {
   // Both gears whole; the sliders fall outside, which is fine - at 20px they
   // were a smear under the gear rather than anything readable.
   settings: "235 70 430 430",
-  // Already square, and built as a tile with its own background.
-  expenses: "0 0 800 800",
+  // Note, coins and arrow all in frame. Cropping tighter made the coins
+  // bigger but clipped the banknote, which is what makes it read as money
+  // rather than as a stack of discs.
+  expenses: "170 120 470 470",
 }
 
 mkdirSync(to, { recursive: true })
