@@ -42,6 +42,13 @@ const CATEGORY_LABELS: Record<string, string> = {
 /** Categories the manual form cannot write, so the page can say where they came from. */
 const AUTOMATIC_CATEGORIES = new Set(["salaries", "pharmacy_purchase", "lab_payout"])
 
+interface SalaryPayment {
+  id: string
+  ledgerId: string
+  amount: number
+  paidOn: string
+}
+
 interface ExpenseRow {
   id: string
   expense_cat: string
@@ -94,8 +101,9 @@ export default async function ExpensesPage({
         .order("monthly_salary", { ascending: false }),
       supabase
         .from("salary_payments")
-        .select("staff_id, amount, paid_on")
-        .eq("for_month", month),
+        .select("id, staff_id, amount, paid_on, ledger_id")
+        .eq("for_month", month)
+        .order("paid_on"),
     ])
 
   const expenses = (expensesResult.data ?? []) as ExpenseRow[]
@@ -111,12 +119,24 @@ export default async function ExpensesPage({
     joined_on: string
     is_active: boolean
   }[]
-  const paidByStaff = new Map(
-    (paymentsResult.data ?? []).map((p) => [
-      p.staff_id as string,
-      { amount: Number(p.amount), paidOn: p.paid_on as string },
-    ]),
-  )
+  // A salary can be paid in instalments, so this sums them rather than
+  // taking the first. A payment whose ledger entry has been reversed is money
+  // that never left, so it does not count - without that check, reversing a
+  // salary from the Expenses tab left the person still showing as paid here.
+  const paidByStaff = new Map<string, { total: number; payments: SalaryPayment[] }>()
+  for (const row of paymentsResult.data ?? []) {
+    if (reversed.has(row.ledger_id as string)) continue
+    const staffId = row.staff_id as string
+    const entry = paidByStaff.get(staffId) ?? { total: 0, payments: [] }
+    entry.total += Number(row.amount)
+    entry.payments.push({
+      id: row.id as string,
+      ledgerId: row.ledger_id as string,
+      amount: Number(row.amount),
+      paidOn: row.paid_on as string,
+    })
+    paidByStaff.set(staffId, entry)
+  }
 
   // Reversed entries are excluded from every total, matching money_summary.
   const live = expenses.filter((row) => !reversed.has(row.id))
@@ -132,10 +152,14 @@ export default async function ExpensesPage({
   const categories = [...byCategory.entries()].sort((a, b) => b[1] - a[1])
 
   const activeStaff = allStaff.filter((s) => s.is_active)
-  const paidCount = activeStaff.filter((s) => paidByStaff.has(s.id)).length
+  // Counted as paid only once the full salary is covered; someone owed the
+  // rest of their month is not "paid".
+  const paidCount = activeStaff.filter(
+    (s) => (paidByStaff.get(s.id)?.total ?? 0) >= Number(s.monthly_salary),
+  ).length
   const wageBill = activeStaff.reduce((sum, s) => sum + Number(s.monthly_salary), 0)
   const paidTotal = activeStaff.reduce(
-    (sum, s) => sum + (paidByStaff.get(s.id)?.amount ?? 0),
+    (sum, s) => sum + (paidByStaff.get(s.id)?.total ?? 0),
     0,
   )
 
@@ -384,7 +408,7 @@ function SalariesTab({
     joined_on: string
     is_active: boolean
   }[]
-  paidByStaff: Map<string, { amount: number; paidOn: string }>
+  paidByStaff: Map<string, { total: number; payments: SalaryPayment[] }>
   month: string
 }) {
   if (staff.length === 0) {
@@ -400,7 +424,7 @@ function SalariesTab({
   return (
     <>
       <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
-        <table className="w-full min-w-[46rem] border-collapse text-base">
+        <table className="w-full min-w-[52rem] border-collapse text-base">
           <caption className="sr-only">Salary run for {monthLabel(month)}</caption>
           <thead>
             <tr className="border-b border-border text-left">
@@ -423,9 +447,12 @@ function SalariesTab({
           </thead>
           <tbody>
             {staff.map((person) => {
-              const payment = paidByStaff.get(person.id)
+              const entry = paidByStaff.get(person.id)
+              const paid = entry?.total ?? 0
+              const payments = entry?.payments ?? []
               const salary = Number(person.monthly_salary)
-              const short = payment ? salary - payment.amount : 0
+              const outstanding = salary - paid
+              const lastPaidOn = payments.at(-1)?.paidOn
 
               return (
                 <tr key={person.id} className="border-b border-border/60 last:border-b-0">
@@ -435,44 +462,85 @@ function SalariesTab({
                       {person.designation}
                     </span>
                   </td>
+
                   <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
                     {formatPKR(salary)}
                   </td>
+
+                  {/* The word carries the state, not the colour - a part
+                      payment used to read "Paid" in green while most of the
+                      salary was still owed. */}
                   <td className="px-4 py-3">
-                    {payment ? (
-                      <Badge variant="success" className="text-sm">
-                        Paid {payment.paidOn}
-                      </Badge>
-                    ) : (
+                    {paid === 0 ? (
                       <Badge variant="warning" className="text-sm">
                         Not paid
                       </Badge>
+                    ) : outstanding > 0 ? (
+                      <Badge variant="destructive" className="text-sm">
+                        Partially paid
+                      </Badge>
+                    ) : outstanding < 0 ? (
+                      <Badge variant="info" className="text-sm">
+                        Overpaid{lastPaidOn ? ` ${lastPaidOn}` : ""}
+                      </Badge>
+                    ) : (
+                      <Badge variant="success" className="text-sm">
+                        Paid{lastPaidOn ? ` ${lastPaidOn}` : ""}
+                      </Badge>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right font-semibold whitespace-nowrap tabular-nums">
-                    {payment ? (
-                      formatPKR(payment.amount)
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                    {payment && short !== 0 ? (
+
+                  <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
+                    <span className="font-semibold">
+                      {paid === 0 ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : (
+                        formatPKR(paid)
+                      )}
+                    </span>
+                    {outstanding > 0 && paid > 0 ? (
+                      <span className="block text-sm font-normal text-destructive">
+                        {formatPKR(outstanding)} still owed
+                      </span>
+                    ) : null}
+                    {outstanding < 0 ? (
                       <span className="block text-sm font-normal text-muted-foreground">
-                        {short > 0
-                          ? `${formatPKR(short)} short`
-                          : `${formatPKR(-short)} extra`}
+                        {formatPKR(-outstanding)} extra
+                      </span>
+                    ) : null}
+
+                    {/* Each instalment on its own line, so a mistaken one can
+                        be reversed without touching the others. */}
+                    {payments.length > 0 ? (
+                      <span className="mt-1.5 flex flex-col items-end gap-1">
+                        {payments.map((payment) => (
+                          <span
+                            key={payment.id}
+                            className="flex items-center gap-2 text-sm font-normal text-muted-foreground"
+                          >
+                            {payment.paidOn} · {formatPKR(payment.amount)}
+                            <ReverseExpenseButton
+                              entryId={payment.ledgerId}
+                              amount={payment.amount}
+                              description={`Salary for ${person.full_name}, ${monthLabel(month)}`}
+                            />
+                          </span>
+                        ))}
                       </span>
                     ) : null}
                   </td>
+
                   <td className="px-4 py-3">
-                    {payment ? null : (
+                    {outstanding > 0 ? (
                       <PaySalaryButton
                         staffId={person.id}
                         staffName={person.full_name}
                         designation={person.designation}
                         monthlySalary={salary}
+                        outstanding={outstanding}
                         forMonth={month}
                       />
-                    )}
+                    ) : null}
                   </td>
                 </tr>
               )
@@ -482,9 +550,11 @@ function SalariesTab({
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Each payment writes one expense to the ledger against that person and month. The
-        same month cannot be paid twice.
+        A salary can be paid in instalments; each one writes its own expense to
+        the ledger against that person and month. Correct a mistake by reversing
+        the instalment, which leaves both entries on the record.
       </p>
     </>
   )
 }
+

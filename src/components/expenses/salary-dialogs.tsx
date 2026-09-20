@@ -21,15 +21,21 @@ export function PaySalaryButton({
   staffName,
   designation,
   monthlySalary,
+  outstanding,
   forMonth,
 }: {
   staffId: string
   staffName: string
   designation: string
   monthlySalary: number
+  /** What is still owed for the month, once earlier instalments are counted. */
+  outstanding: number
   /** Month start, e.g. "2026-09-01". */
   forMonth: string
 }) {
+  // Part way through a month's salary, the useful default is the rest of it,
+  // not the whole figure again.
+  const partPaid = outstanding < monthlySalary
   const [open, setOpen] = useState(false)
   const [result, dispatch, pending] = useActionState<ActionResult | null, FormData>(
     paySalary,
@@ -52,14 +58,18 @@ export function PaySalaryButton({
         className="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
       >
         <Wallet className="size-4" aria-hidden />
-        Pay
+        {partPaid ? "Pay rest" : "Pay"}
       </button>
 
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         title={`Pay ${staffName}`}
-        description={`Salary for ${monthLabel(forMonth)}. This writes an expense to the ledger, which cannot be edited afterwards — only reversed.`}
+        description={
+          partPaid
+            ? `${formatPKR(outstanding)} of this salary is still owed for ${monthLabel(forMonth)}. This writes another expense to the ledger, which cannot be edited afterwards — only reversed.`
+            : `Salary for ${monthLabel(forMonth)}. This writes an expense to the ledger, which cannot be edited afterwards — only reversed.`
+        }
       >
         <form ref={formRef} action={dispatch} onSubmit={captureValues} className="flex flex-col gap-4">
           <input type="hidden" name="staff_id" value={staffId} />
@@ -70,6 +80,14 @@ export function PaySalaryButton({
             <span className="font-semibold whitespace-nowrap tabular-nums">
               {formatPKR(monthlySalary)}
             </span>
+            {partPaid ? (
+              <>
+                {" · already paid "}
+                <span className="font-semibold whitespace-nowrap tabular-nums">
+                  {formatPKR(monthlySalary - outstanding)}
+                </span>
+              </>
+            ) : null}
           </p>
 
           <Field
@@ -86,7 +104,7 @@ export function PaySalaryButton({
               step="1"
               inputMode="numeric"
               required
-              defaultValue={Math.round(monthlySalary)}
+              defaultValue={Math.round(outstanding)}
               className={controlClass}
             />
           </Field>
