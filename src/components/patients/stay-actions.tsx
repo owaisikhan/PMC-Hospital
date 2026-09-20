@@ -6,6 +6,7 @@ import { Loader2, LogOut, Plus } from "lucide-react"
 import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
+import { useFormValues } from "@/hooks/use-form-values"
 import { addSupport, dischargePatient, type ActionResult } from "@/lib/actions"
 import { todayISO } from "@/lib/dates"
 import { formatPKR } from "@/lib/format"
@@ -28,6 +29,7 @@ export function AddSupportButton({
     addSupport,
     null
   )
+  const { formRef, captureValues } = useFormValues(result)
 
   useEffect(() => {
     if (result?.ok) {
@@ -49,7 +51,7 @@ export function AddSupportButton({
         title="Add support to this stay"
         description="Charged per day for the dates you give, on top of the ward charge."
       >
-        <form action={action} className="flex flex-col gap-4">
+        <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <input type="hidden" name="admission_id" value={admissionId} />
 
           <Field label="Support given" htmlFor="support_rate" required>
@@ -138,6 +140,7 @@ export function DischargeButton({
     dischargePatient,
     null
   )
+  const { formRef, captureValues } = useFormValues(result)
 
   useEffect(() => {
     if (result?.ok) {
@@ -159,7 +162,7 @@ export function DischargeButton({
         title={`Discharge ${patientName}?`}
         description="Charges stop on the discharge date. The bill stays on record."
       >
-        <form action={action} className="flex flex-col gap-4">
+        <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <input type="hidden" name="admission_id" value={admissionId} />
 
           <p className="rounded-lg bg-muted px-3 py-2.5 text-base">

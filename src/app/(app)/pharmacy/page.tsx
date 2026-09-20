@@ -21,6 +21,7 @@ interface BatchRow {
 
 interface ItemRow {
   id: string
+  sku: string
   name: string
   form: string | null
   strength: string | null
@@ -36,7 +37,7 @@ export default async function PharmacyPage() {
   const { data, error } = await supabase
     .from("pharmacy_items")
     .select(
-      "id, name, form, strength, unit, reorder_level, pharmacy_batches(id, batch_no, expiry_date, qty_remaining, cost_price, sale_price)"
+      "id, sku, name, form, strength, unit, reorder_level, pharmacy_batches(id, batch_no, expiry_date, qty_remaining, cost_price, sale_price)"
     )
     .eq("is_active", true)
     .order("name")
@@ -60,6 +61,7 @@ export default async function PharmacyPage() {
 
     return {
       id: item.id,
+      sku: item.sku,
       name: item.name,
       detail: [item.strength, item.form].filter((part) => part && part !== "-").join(" · "),
       unit: item.unit,
@@ -107,14 +109,26 @@ export default async function PharmacyPage() {
               ) : null}
             </p>
 
-            <div className="overflow-x-auto rounded-xl border border-border bg-card">
-              <table className="w-full min-w-[46rem] border-collapse text-base">
+            {/* min-w-0: a flex child defaults to min-width:auto, so without it the
+                wrapper grows to the table's width and scrolls the whole page
+                sideways instead of scrolling inside its own card.
+
+                relative: sr-only is position:absolute, and with no positioned
+                ancestor its containing block is the document rather than this
+                wrapper. A visually hidden label inside a table wider than the
+                screen then sits outside the scroller and drags the page's
+                scrollable width out with it - 500px of blank space the page
+                could be scrolled into. Making this the containing block keeps
+                it clipped here. */}
+            <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+              <table className="w-full min-w-[52rem] border-collapse text-base">
                 <caption className="sr-only">
                   Pharmacy stock, with purchase price, sale price and expiry date
                 </caption>
                 <thead>
                   <tr className="border-b border-border text-left">
                     <th scope="col" className="w-14 px-4 py-3 font-medium">S#</th>
+                    <th scope="col" className="px-4 py-3 font-medium">SKU</th>
                     <th scope="col" className="px-4 py-3 font-medium">Medicine</th>
                     <th scope="col" className="px-4 py-3 font-medium">Stock</th>
                     <th scope="col" className="px-4 py-3 text-right font-medium">
@@ -139,6 +153,10 @@ export default async function PharmacyPage() {
                       >
                         <td className="px-4 py-3 text-muted-foreground tabular-nums">
                           {index + 1}
+                        </td>
+
+                        <td className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
+                          {row.sku}
                         </td>
 
                         <td className="px-4 py-3">

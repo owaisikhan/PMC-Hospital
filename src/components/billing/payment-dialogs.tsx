@@ -6,6 +6,7 @@ import { Loader2, Percent, Undo2, Wallet } from "lucide-react"
 import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
+import { useFormValues } from "@/hooks/use-form-values"
 import {
   applyDiscount,
   recordPayment,
@@ -50,6 +51,7 @@ export function RecordPaymentButton({
 }) {
   const [open, setOpen] = useState(false)
   const [result, action, pending] = useClosingAction(recordPayment, () => setOpen(false))
+  const { formRef, captureValues } = useFormValues(result)
 
   return (
     <>
@@ -64,7 +66,7 @@ export function RecordPaymentButton({
         title={`Payment from ${patientName}`}
         description="Cash received now. Corrections are made by reversing, never by editing."
       >
-        <form action={action} className="flex flex-col gap-4">
+        <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <input type="hidden" name="admission_id" value={admissionId} />
           <input type="hidden" name="patient_id" value={patientId} />
 
@@ -149,6 +151,7 @@ export function DiscountButton({
 }) {
   const [open, setOpen] = useState(false)
   const [result, action, pending] = useClosingAction(applyDiscount, () => setOpen(false))
+  const { formRef, captureValues } = useFormValues(result)
 
   return (
     <>
@@ -163,7 +166,7 @@ export function DiscountButton({
         title={`Concession for ${patientName}`}
         description="Reduces the bill without recording money. It is never counted as income."
       >
-        <form action={action} className="flex flex-col gap-4">
+        <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <input type="hidden" name="admission_id" value={admissionId} />
 
           <p className="rounded-lg bg-muted px-3 py-2.5 text-base">
@@ -221,6 +224,7 @@ export function ReversePaymentButton({
 }) {
   const [open, setOpen] = useState(false)
   const [result, action, pending] = useClosingAction(reversePayment, () => setOpen(false))
+  const { formRef, captureValues } = useFormValues(result)
 
   return (
     <>
@@ -239,7 +243,7 @@ export function ReversePaymentButton({
         title={`Reverse ${formatPKR(amount)}?`}
         description="The original payment stays on record. A matching reversal is added beside it."
       >
-        <form action={action} className="flex flex-col gap-4">
+        <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <input type="hidden" name="payment_id" value={paymentId} />
 
           <Field

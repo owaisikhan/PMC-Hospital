@@ -6,6 +6,7 @@ import { Loader2, UserPlus } from "lucide-react"
 import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
+import { useFormValues } from "@/hooks/use-form-values"
 import { registerPatient, type ActionResult } from "@/lib/actions"
 import { todayISO } from "@/lib/dates"
 
@@ -19,6 +20,7 @@ export function RegisterPatientDialog({
     registerPatient,
     null
   )
+  const { formRef, captureValues } = useFormValues(result)
 
   // Close only once the database has confirmed. A refusal keeps the dialog
   // open, because that message is the whole interaction.
@@ -46,7 +48,7 @@ export function RegisterPatientDialog({
         title="Register a child"
         description="The medical record number is created automatically."
       >
-        <form action={action} className="flex flex-col gap-4">
+        <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <Field label="Child's name" htmlFor="full_name" required>
             <input id="full_name" name="full_name" required autoComplete="off" className={controlClass} />
           </Field>

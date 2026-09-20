@@ -6,6 +6,7 @@ import { BedDouble, Loader2 } from "lucide-react"
 import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
+import { useFormValues } from "@/hooks/use-form-values"
 import { admitPatient, type ActionResult } from "@/lib/actions"
 import { todayISO } from "@/lib/dates"
 import { formatAge, formatPKR } from "@/lib/format"
@@ -50,6 +51,7 @@ export function AdmitDialog({
     admitPatient,
     null
   )
+  const { formRef, captureValues } = useFormValues(result)
 
   useEffect(() => {
     if (result?.ok) {
@@ -89,7 +91,7 @@ export function AdmitDialog({
         title="Admit a child"
         description="Find the child, then choose the ward and what is being charged."
       >
-        <form action={action} className="flex flex-col gap-4">
+        <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <Field
             label="Find the child"
             htmlFor="patient_search"

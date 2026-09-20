@@ -413,3 +413,122 @@ export async function reversePayment(
   revalidatePath("/")
   return { ok: true, message: "Payment reversed. The original stays on record." }
 }
+
+// ---------------------------------------------------------------------------
+// Laboratory
+// ---------------------------------------------------------------------------
+
+const LAB_STATUSES = ["ordered", "sample_sent", "resulted", "cancelled"] as const
+
+export async function recordLabOrder(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  const supabase = await createClient()
+
+  const patientId = text(form, "patient_id")
+  const testId = text(form, "test_id")
+  const orderedOn = text(form, "ordered_on") || todayISO()
+  const paidNow = form.get("paid_now") === "on"
+
+  if (!patientId) return fail("Choose the child the test is for.")
+  if (!testId) return fail("Choose the test.")
+  if (orderedOn > todayISO()) return fail("The order date cannot be in the future.")
+
+  // The prices are copied onto the order, so changing a test's price later
+  // never rewrites what an earlier family was charged.
+  const { data: test, error: testError } = await supabase
+    .from("lab_tests")
+    .select("name, charge_price, cost_price, external_lab")
+    .eq("id", testId)
+    .single()
+
+  if (testError || !test) return fail("That test no longer exists.")
+
+  // If the child is currently admitted, attach the order to that stay so it
+  // shows on their record.
+  const { data: openStay } = await supabase
+    .from("admissions")
+    .select("id")
+    .eq("patient_id", patientId)
+    .is("discharged_on", null)
+    .maybeSingle()
+
+  const { data: order, error } = await supabase
+    .from("lab_orders")
+    .insert({
+      patient_id: patientId,
+      admission_id: openStay?.id ?? null,
+      test_id: testId,
+      ordered_on: orderedOn,
+      status: "ordered",
+      charge_amount: test.charge_price,
+      cost_amount: test.cost_price,
+      external_lab: test.external_lab,
+      created_by: profile.id,
+    })
+    .select("id")
+    .single()
+
+  if (error) return fail(describeDbError(error.message))
+
+  if (paidNow && Number(test.charge_price) > 0) {
+    // Deliberately no admission_id: a lab charge is not a payment against the
+    // ward bill, and attaching it there would reduce what the family owes.
+    const { error: ledgerError } = await supabase.from("ledger_entries").insert({
+      direction: "in",
+      income_cat: "lab",
+      amount: test.charge_price,
+      occurred_on: orderedOn,
+      method: "cash",
+      description: `Lab test: ${test.name}`,
+      patient_id: patientId,
+      lab_order_id: order.id,
+      created_by: profile.id,
+    })
+    if (ledgerError) {
+      return {
+        ok: true,
+        message: `Test ordered, but the payment was not recorded: ${describeDbError(ledgerError.message)}`,
+      }
+    }
+  }
+
+  revalidatePath("/laboratory")
+  revalidatePath("/")
+  return {
+    ok: true,
+    message: paidNow ? "Test ordered and payment recorded." : "Test ordered.",
+  }
+}
+
+export async function updateLabOrder(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  await requireProfile()
+  const supabase = await createClient()
+
+  const orderId = text(form, "order_id")
+  const status = text(form, "status")
+  const resultNote = text(form, "result_note")
+
+  if (!orderId) return fail("Missing the order.")
+  if (!LAB_STATUSES.includes(status as (typeof LAB_STATUSES)[number])) {
+    return fail("Choose a valid status.")
+  }
+  if (status === "resulted" && !resultNote) {
+    return fail("Enter the result before marking the test as resulted.")
+  }
+
+  const { error } = await supabase
+    .from("lab_orders")
+    .update({ status, result_note: resultNote || null })
+    .eq("id", orderId)
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/laboratory")
+  return { ok: true, message: "Test updated." }
+}
