@@ -94,3 +94,47 @@ export function businessDayStart(iso: string): string {
 export function businessDayEnd(iso: string): string {
   return `${iso}T23:59:59.999+05:00`
 }
+
+/** First day of the month an ISO date falls in, e.g. "2026-09-14" -> "2026-09-01". */
+export function monthStartISO(iso: string): string {
+  return `${iso.slice(0, 7)}-01`
+}
+
+/** "2026-09-01" -> "September 2026". Built from the parts rather than a Date,
+ *  so the business month never shifts with the server's time zone. */
+export function monthLabel(iso: string): string {
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ]
+  const year = Number(iso.slice(0, 4))
+  const month = Number(iso.slice(5, 7))
+  return `${months[month - 1] ?? iso.slice(5, 7)} ${year}`
+}
+
+/** Month starts, newest first, ending at the current business month. */
+export function recentMonths(count: number, today = todayISO()): string[] {
+  let year = Number(today.slice(0, 4))
+  let month = Number(today.slice(5, 7))
+  const out: string[] = []
+  for (let i = 0; i < count; i++) {
+    out.push(`${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-01`)
+    month -= 1
+    if (month === 0) {
+      month = 12
+      year -= 1
+    }
+  }
+  return out
+}
+
+/** First day of the month after the one given, for half-open date ranges. */
+export function nextMonthStartISO(monthStart: string): string {
+  let year = Number(monthStart.slice(0, 4))
+  let month = Number(monthStart.slice(5, 7)) + 1
+  if (month === 13) {
+    month = 1
+    year += 1
+  }
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-01`
+}

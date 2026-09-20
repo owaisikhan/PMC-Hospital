@@ -532,3 +532,209 @@ export async function updateLabOrder(
   revalidatePath("/laboratory")
   return { ok: true, message: "Test updated." }
 }
+
+// ---------------------------------------------------------------------------
+// Expenses, salaries and staff (admin only)
+// ---------------------------------------------------------------------------
+
+/**
+ * What the manual expense form may record.
+ *
+ * Salaries are missing on purpose: they go through paySalary so each one links
+ * to a staff member and a month. Pharmacy purchases and lab payouts are
+ * missing for the same reason - their own flows write them, and offering them
+ * here as well is how the same Rs 74,550 stock purchase ends up in the ledger
+ * twice, overstating outflow and understating profit.
+ */
+const MANUAL_EXPENSE_CATEGORIES = ["rent", "electricity", "other"] as const
+export type ManualExpenseCategory = (typeof MANUAL_EXPENSE_CATEGORIES)[number]
+
+function revalidateMoney() {
+  revalidatePath("/expenses")
+  revalidatePath("/")
+}
+
+export async function recordExpense(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") {
+    return fail("Only an administrator can record an expense.")
+  }
+
+  const supabase = await createClient()
+  const category = text(form, "expense_cat")
+  const amount = Number(text(form, "amount"))
+  const occurredOn = text(form, "occurred_on") || todayISO()
+  const description = text(form, "description")
+
+  if (!MANUAL_EXPENSE_CATEGORIES.includes(category as ManualExpenseCategory)) {
+    return fail("Choose what the money was spent on.")
+  }
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return fail("Enter how much was spent. It must be more than zero.")
+  }
+  if (occurredOn > todayISO()) return fail("The date cannot be in the future.")
+  if (!description) {
+    return fail("Say what this was for — a bare amount is impossible to check later.")
+  }
+
+  const { error } = await supabase.from("ledger_entries").insert({
+    direction: "out",
+    expense_cat: category,
+    amount,
+    method: text(form, "method") || "cash",
+    occurred_on: occurredOn,
+    description,
+    created_by: profile.id,
+  })
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidateMoney()
+  return { ok: true, message: "Expense recorded." }
+}
+
+/**
+ * Corrections are reversals, never edits: the ledger has no update or delete
+ * granted to anyone, so the original always stays readable.
+ */
+export async function reverseExpense(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") {
+    return fail("Only an administrator can reverse an expense.")
+  }
+
+  const supabase = await createClient()
+  const entryId = text(form, "entry_id")
+  const reason = text(form, "reason")
+
+  if (!entryId) return fail("Missing the expense.")
+  if (!reason) return fail("Say why this is being reversed — it goes on the record.")
+
+  const { data: original, error: readError } = await supabase
+    .from("ledger_entries")
+    .select("id, amount, direction")
+    .eq("id", entryId)
+    .single()
+
+  if (readError || !original) return fail("That expense could not be found.")
+  if (original.direction !== "out") return fail("That entry is not an expense.")
+
+  // The opposite direction is 'in', and the ledger insists an inbound row
+  // carries an income category. It is not really income, which is why
+  // money_summary leaves a reversal and the row it reverses out of both
+  // totals rather than letting them show up as earnings.
+  const { error } = await supabase.from("ledger_entries").insert({
+    direction: "in",
+    income_cat: "other",
+    amount: original.amount,
+    occurred_on: todayISO(),
+    description: `Reversal: ${reason}`,
+    reverses_id: original.id,
+    reversal_reason: reason,
+    created_by: profile.id,
+  })
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidateMoney()
+  return { ok: true, message: "Expense reversed. The original stays on record." }
+}
+
+export async function paySalary(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") {
+    return fail("Only an administrator can pay salaries.")
+  }
+
+  const supabase = await createClient()
+  const staffId = text(form, "staff_id")
+  const forMonth = text(form, "for_month")
+  const amount = Number(text(form, "amount"))
+  const paidOn = text(form, "paid_on") || todayISO()
+
+  if (!staffId) return fail("Missing the staff member.")
+  if (!forMonth) return fail("Choose the month this salary is for.")
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return fail("Enter how much was paid. It must be more than zero.")
+  }
+  if (paidOn > todayISO()) return fail("The payment date cannot be in the future.")
+
+  // One call, so the ledger entry and the salary record land together or not
+  // at all. Two separate inserts could leave an expense in an append-only
+  // ledger with no salary record to explain it.
+  const { error } = await supabase.rpc("pay_salary", {
+    p_staff_id: staffId,
+    p_for_month: forMonth,
+    p_amount: amount,
+    p_paid_on: paidOn,
+    p_method: text(form, "method") || "cash",
+    p_description: text(form, "description") || null,
+  })
+
+  if (error) {
+    if (error.message.includes("SALARY_ALREADY_PAID")) {
+      return fail("This person has already been paid for that month.")
+    }
+    return fail(describeDbError(error.message))
+  }
+
+  revalidateMoney()
+  return { ok: true, message: "Salary paid and recorded." }
+}
+
+export async function saveStaff(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") {
+    return fail("Only an administrator can change staff records.")
+  }
+
+  const supabase = await createClient()
+  const staffId = text(form, "staff_id")
+  const fullName = text(form, "full_name")
+  const designation = text(form, "designation")
+  const monthlySalary = Number(text(form, "monthly_salary"))
+  const joinedOn = text(form, "joined_on") || todayISO()
+  const isActive = form.get("is_active") !== null
+
+  if (!fullName) return fail("Enter the staff member's name.")
+  if (!designation) return fail("Enter what they do, for example Staff Nurse.")
+  if (!Number.isFinite(monthlySalary) || monthlySalary < 0) {
+    return fail("Enter the monthly salary. It cannot be negative.")
+  }
+  if (joinedOn > todayISO()) return fail("The joining date cannot be in the future.")
+
+  const row = {
+    full_name: fullName,
+    designation,
+    monthly_salary: monthlySalary,
+    phone: text(form, "phone") || null,
+    joined_on: joinedOn,
+    is_active: isActive,
+    // Someone who has left keeps a leaving date; someone reinstated loses it.
+    left_on: isActive ? null : text(form, "left_on") || todayISO(),
+  }
+
+  const { error } = staffId
+    ? await supabase.from("staff").update(row).eq("id", staffId)
+    : await supabase.from("staff").insert(row)
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/expenses")
+  return {
+    ok: true,
+    message: staffId ? "Staff record updated." : `${fullName} added to the staff list.`,
+  }
+}
