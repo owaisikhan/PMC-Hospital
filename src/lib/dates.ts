@@ -42,6 +42,10 @@ export const PERIOD_LABELS: Record<Period, string> = {
   month: "This month",
 }
 
+/** Left to right, as the filter shows them. The panel slide reads its
+ *  direction of travel from this order. */
+export const PERIOD_ORDER: Period[] = ["day", "week", "month"]
+
 export function isPeriod(value: string | undefined): value is Period {
   return value === "day" || value === "week" || value === "month"
 }

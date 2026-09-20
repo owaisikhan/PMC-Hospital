@@ -1,39 +1,24 @@
-import Link from "next/link"
-
-import { PERIOD_LABELS, type Period } from "@/lib/dates"
-import { cn } from "@/lib/utils"
-
-const PERIODS: Period[] = ["day", "week", "month"]
+import { SlidingTabs, type TabItem } from "@/components/ui/sliding-tabs"
+import { PERIOD_LABELS, PERIOD_ORDER, type Period } from "@/lib/dates"
 
 /**
  * Plain links rather than a client-side control: the period lives in the URL,
- * so the figures are server-rendered, shareable and survive a refresh.
+ * so the figures are server-rendered, shareable and survive a refresh. The
+ * pill that marks the active one slides between them.
  */
 export function PeriodFilter({ active }: { active: Period }) {
+  const items: TabItem[] = PERIOD_ORDER.map((period) => ({
+    key: period,
+    label: PERIOD_LABELS[period],
+    href: `/?period=${period}`,
+  }))
+
   return (
-    <div
-      role="group"
-      aria-label="Time period"
-      className="inline-flex rounded-lg border border-border bg-card p-0.5"
-    >
-      {PERIODS.map((period) => {
-        const isActive = period === active
-        return (
-          <Link
-            key={period}
-            href={`/?period=${period}`}
-            aria-current={isActive ? "true" : undefined}
-            className={cn(
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {PERIOD_LABELS[period]}
-          </Link>
-        )
-      })}
-    </div>
+    <SlidingTabs
+      items={items}
+      active={active}
+      groupId="period"
+      ariaLabel="Time period"
+    />
   )
 }

@@ -1,6 +1,4 @@
-import Link from "next/link"
-
-import { cn } from "@/lib/utils"
+import { SlidingTabs, type TabItem } from "@/components/ui/sliding-tabs"
 
 export type PatientFilter = "admitted" | "all"
 
@@ -14,8 +12,9 @@ export function isPatientFilter(value: string | undefined): value is PatientFilt
 }
 
 /**
- * The selected chip is a span, not a link back to the page you are already on.
- * The search term rides along, so changing the filter does not silently wipe it.
+ * The search term rides along, so changing the filter does not silently wipe
+ * it. The selected chip is a span rather than a link back to the page you are
+ * already on; that rule lives in SlidingTabs, along with the sliding pill.
  */
 export function StatusFilter({
   active,
@@ -24,42 +23,26 @@ export function StatusFilter({
   active: PatientFilter
   query: string
 }) {
-  const base = "rounded-md px-3.5 py-2 text-base font-medium transition-colors"
+  const items: TabItem[] = (Object.keys(FILTER_LABELS) as PatientFilter[]).map(
+    (filter) => {
+      const params = new URLSearchParams()
+      if (query) params.set("q", query)
+      params.set("show", filter)
+      return {
+        key: filter,
+        label: FILTER_LABELS[filter],
+        href: `/patients?${params.toString()}`,
+      }
+    }
+  )
 
   return (
-    <div
-      role="group"
-      aria-label="Filter patients"
-      className="inline-flex rounded-lg border border-border bg-card p-0.5"
-    >
-      {(Object.keys(FILTER_LABELS) as PatientFilter[]).map((filter) => {
-        if (filter === active) {
-          return (
-            <span
-              key={filter}
-              aria-current="true"
-              className={cn(base, "bg-primary text-primary-foreground")}
-            >
-              {FILTER_LABELS[filter]}
-            </span>
-          )
-        }
-
-        const params = new URLSearchParams()
-        if (query) params.set("q", query)
-        params.set("show", filter)
-
-        return (
-          <Link
-            key={filter}
-            href={`/patients?${params.toString()}`}
-            scroll={false}
-            className={cn(base, "text-muted-foreground hover:text-foreground")}
-          >
-            {FILTER_LABELS[filter]}
-          </Link>
-        )
-      })}
-    </div>
+    <SlidingTabs
+      items={items}
+      active={active}
+      groupId="patient-filter"
+      ariaLabel="Filter patients"
+      size="large"
+    />
   )
 }
