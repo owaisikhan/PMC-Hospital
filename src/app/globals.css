@@ -219,6 +219,21 @@
   html {
     @apply font-sans;
   }
+
+  /* Tailwind 4 dropped the Preflight rule that gave buttons a pointer cursor,
+     so every button in the app looked inert on hover. Restored here once
+     rather than as a class on each of the three dozen buttons, which would
+     also have to be remembered for every button added later.
+
+     It sits in @layer base, not at the top level, so a cursor-* utility can
+     still override it - an unlayered rule would outrank every utility.
+
+     :not(:disabled) because a button that cannot be pressed should not
+     advertise itself as pressable. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /* ---------------------------------------------------------------------------
