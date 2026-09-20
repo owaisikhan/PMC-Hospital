@@ -1,31 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
-
-/**
- * A placeholder bar sitting in a box of the real text's line height.
- *
- * The bar is shorter than the line so it reads as text rather than a slab,
- * but the box around it is the exact height the real line will occupy. Sizing
- * the bars alone left each row 10px short, which shifted the whole list up
- * when the data arrived - the jump a skeleton is supposed to prevent.
- */
-function SkeletonLine({
-  line,
-  bar,
-  width,
-  delay,
-}: {
-  /** Height of the real text line: h-7 for text-lg, h-6 for text-base, h-5 for text-sm. */
-  line: string
-  bar: string
-  width: string
-  delay: number
-}) {
-  return (
-    <span className={`flex ${line} items-center`}>
-      <Skeleton className={`${bar} ${width}`} delay={delay} />
-    </span>
-  )
-}
+import { Skeleton, SkeletonLine } from "@/components/ui/skeleton"
 
 /**
  * Mirrors the real patient row: the name block on the left, then MRN, Age,

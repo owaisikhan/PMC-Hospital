@@ -53,3 +53,39 @@ export function Skeleton({ className, delay = 0 }: SkeletonProps) {
     </span>
   )
 }
+
+/**
+ * A placeholder bar sitting in a box of the real text's line height.
+ *
+ * The bar is shorter than the line so it reads as text rather than a slab,
+ * but the box around it is the exact height the real line will occupy.
+ * Sizing the bars alone leaves rows short, and the page jumps when the data
+ * lands - the one thing a skeleton exists to prevent.
+ *
+ * Line heights: h-7 for text-xl/text-lg, h-6 for text-base, h-5 for text-sm.
+ */
+export function SkeletonLine({
+  line,
+  bar,
+  width,
+  delay = 0,
+  align = "left",
+}: {
+  line: string
+  bar: string
+  width: string
+  delay?: number
+  align?: "left" | "right"
+}) {
+  return (
+    <span
+      className={cn(
+        "flex items-center",
+        line,
+        align === "right" && "justify-end"
+      )}
+    >
+      <Skeleton className={cn(bar, width)} delay={delay} />
+    </span>
+  )
+}
