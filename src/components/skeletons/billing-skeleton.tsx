@@ -72,6 +72,15 @@ export function BillingSkeleton({ bills = 3 }: { bills?: number }) {
       {Array.from({ length: bills }, (_, index) => (
         <BillSkeleton key={index} delay={index * 0.14} />
       ))}
+
+      {/* The count and pager row below the list. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SkeletonLine line="h-6" bar="h-4" width="w-40" delay={0.5} />
+        <div className="flex gap-2">
+          <Skeleton className="h-11 w-28 rounded-lg" delay={0.54} />
+          <Skeleton className="h-11 w-20 rounded-lg" delay={0.58} />
+        </div>
+      </div>
     </>
   )
 }

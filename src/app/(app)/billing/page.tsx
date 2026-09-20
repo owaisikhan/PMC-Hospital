@@ -14,6 +14,7 @@ import {
   ReversePaymentButton,
 } from "@/components/billing/payment-dialogs"
 import { Badge } from "@/components/ui/badge"
+import { Pager, parsePage } from "@/components/ui/pager"
 import {
   hasNoBill,
   isBillingFilter,
@@ -29,6 +30,13 @@ import { requireProfile } from "@/lib/supabase/session"
 import { cn } from "@/lib/utils"
 
 export const metadata = { title: "Billing" }
+
+/**
+ * Smaller than the Patients list's 20. A bill is a whole card - charges,
+ * payment history, buttons - so ten of them already make a long page, and
+ * each one costs a query for its payment history.
+ */
+const PAGE_SIZE = 10
 
 interface Payment {
   id: string
@@ -71,9 +79,14 @@ function matches(patient: PatientRef, query: string): boolean {
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ show?: string; status?: string; q?: string }>
+  searchParams: Promise<{
+    show?: string
+    status?: string
+    q?: string
+    page?: string
+  }>
 }) {
-  const { show, status: rawStatus, q = "" } = await searchParams
+  const { show, status: rawStatus, q = "", page: rawPage } = await searchParams
   const filter: BillingFilter = isBillingFilter(show) ? show : "owing"
   const status: BillingStatus = isBillingStatus(rawStatus)
     ? rawStatus
@@ -136,11 +149,19 @@ export default async function BillingPage({
       : true
   )
 
-  // Payment history, fetched only for the rows actually shown. Scoped per
-  // admission by the RPC, so this never walks the whole ledger.
+  const total = rows.length
+  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  // Clamped, so narrowing a filter while on page 3 lands on the last real
+  // page rather than an empty one.
+  const page = Math.min(parsePage(rawPage), lastPage)
+  const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  // Payment history, fetched only for the bills on this page. Scoped per
+  // admission by the RPC, so this never walks the whole ledger, and paging
+  // now caps it at PAGE_SIZE queries however many bills exist.
   const paymentsByStay = new Map<string, Payment[]>()
   await Promise.all(
-    rows
+    pageRows
       .filter((row): row is Extract<Row, { kind: "stay" }> => row.kind === "stay")
       .map(async ({ stay }) => {
         const { data } = await supabase.rpc("admission_payments", {
@@ -150,6 +171,9 @@ export default async function BillingPage({
       })
   )
 
+  // Counted across everything the filters matched, not just this page - the
+  // total owed is the number the owner came for, and it should not change
+  // when they click Next.
   const owedRows = rows.filter(
     (row) => row.kind === "stay" && row.balance.balance > 0
   )
@@ -199,7 +223,7 @@ export default async function BillingPage({
           </p>
         ) : null}
 
-        {rows.length === 0 ? (
+        {pageRows.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-14 text-center">
             <Receipt className="size-8 text-muted-foreground" aria-hidden />
             <p className="text-base font-medium">
@@ -218,7 +242,7 @@ export default async function BillingPage({
             </p>
           </div>
         ) : (
-          rows.map((row) =>
+          pageRows.map((row) =>
             row.kind === "patient" ? (
               <UnbilledPatientCard key={row.patient.id} patient={row.patient} />
             ) : (
@@ -232,9 +256,42 @@ export default async function BillingPage({
             )
           )
         )}
+
+        {pageRows.length > 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-base text-muted-foreground">
+              {total} {total === 1 ? "bill" : "bills"} · page {page} of {lastPage}
+            </p>
+            <Pager
+              page={page}
+              lastPage={lastPage}
+              hrefFor={(p) => billingHref({ show: filter, status, q: query, page: p })}
+            />
+          </div>
+        ) : null}
       </div>
     </>
   )
+}
+
+/** A /billing URL that keeps both filters and the search term. */
+function billingHref({
+  show,
+  status,
+  q,
+  page,
+}: {
+  show: BillingFilter
+  status: BillingStatus
+  q: string
+  page: number
+}): string {
+  const params = new URLSearchParams()
+  params.set("show", show)
+  params.set("status", status)
+  if (q) params.set("q", q)
+  params.set("page", String(page))
+  return `/billing?${params.toString()}`
 }
 
 /** Said in words, not by an empty space where the figures should be. */

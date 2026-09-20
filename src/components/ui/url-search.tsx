@@ -34,11 +34,22 @@ export function UrlSearch({
   const router = useRouter()
   const [value, setValue] = useState(initialQuery)
 
+  /**
+   * Whether the person has actually typed something.
+   *
+   * Without this the debounce fires once on mount and rewrites the URL to the
+   * carried filters alone - which drops ?page, so landing on page 2 of a list
+   * bounced back to page 1 about a third of a second after it loaded. Nothing
+   * should navigate until a key is pressed.
+   */
+  const [typed, setTyped] = useState(false)
+
   // Serialised, so the effect below compares by value rather than by a fresh
   // object identity on every render.
   const carried = JSON.stringify(carry)
 
   useEffect(() => {
+    if (!typed) return
     const timer = setTimeout(() => {
       const next = new URLSearchParams(
         JSON.parse(carried) as Record<string, string>
@@ -47,7 +58,9 @@ export function UrlSearch({
       router.replace(`${basePath}?${next.toString()}`, { scroll: false })
     }, 300)
     return () => clearTimeout(timer)
-  }, [value, carried, basePath, router])
+    // Deliberately no `page`: a new search belongs on the first page of its
+    // own results, not on whatever page number the last one had reached.
+  }, [typed, value, carried, basePath, router])
 
   return (
     <div className="relative w-full sm:max-w-md">
@@ -58,7 +71,10 @@ export function UrlSearch({
       <input
         type="search"
         value={value}
-        onChange={(event) => setValue(event.target.value)}
+        onChange={(event) => {
+          setTyped(true)
+          setValue(event.target.value)
+        }}
         placeholder={placeholder}
         aria-label={label}
         className={`${controlClass} pl-10`}
