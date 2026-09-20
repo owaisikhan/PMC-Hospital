@@ -62,6 +62,12 @@ export function Dialog({
         "m-0 max-h-dvh w-full max-w-xl bg-transparent p-0",
         "max-sm:h-dvh max-sm:max-w-none",
         "sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2",
+        // showModal() paints this in the top layer, but CSS still inherits down
+        // the DOM tree, so a dialog opened from inside a right-aligned,
+        // no-wrap, tabular-figures table cell came out right-aligned with its
+        // description refusing to wrap. Reset the inherited text properties
+        // here, so a dialog looks the same wherever it is mounted from.
+        "text-left whitespace-normal normal-nums",
         className
       )}
     >
