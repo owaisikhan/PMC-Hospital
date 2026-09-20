@@ -1,20 +1,21 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion, useReducedMotion } from "motion/react"
-import { BedDouble, RefreshCw, Users } from "lucide-react"
+import { useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { BedDouble, RefreshCw, Users } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { formatPKR, pluralize } from "@/lib/format"
+import { Card, CardContent } from "@/components/ui/card";
+import { TiltCard } from "@/components/ui/tilt-card";
+import { formatPKR, pluralize } from "@/lib/format";
 
 interface FlipRevenueCardProps {
-  label: string
-  amount: number
+  label: string;
+  amount: number;
   /** Patients registered inside the same period as the money on the front. */
-  patientCount: number
+  patientCount: number;
   /** Human-readable period, e.g. "this week", used in the captions. */
-  periodLabel: string
-  sharePercent?: number
+  periodLabel: string;
+  sharePercent?: number;
 }
 
 /**
@@ -30,17 +31,17 @@ export function FlipRevenueCard({
   periodLabel,
   sharePercent,
 }: FlipRevenueCardProps) {
-  const [flipped, setFlipped] = useState(false)
-  const reduceMotion = useReducedMotion()
+  const [flipped, setFlipped] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   const face = (
     title: string,
     primary: string,
     caption: string,
     meter: boolean,
-    hidden: boolean
+    hidden: boolean,
   ) => {
-    const Icon = meter ? BedDouble : Users
+    const Icon = meter ? BedDouble : Users;
     return (
       <CardContent
         aria-hidden={hidden}
@@ -82,62 +83,67 @@ export function FlipRevenueCard({
           </p>
         )}
       </CardContent>
-    )
-  }
+    );
+  };
 
   return (
-    <div className="flip-scene">
-      <motion.button
-        type="button"
-        onClick={() => setFlipped((previous) => !previous)}
-        aria-pressed={flipped}
-        aria-label={
-          flipped
-            ? `${pluralize(patientCount, "patient")} registered ${periodLabel}. Show admissions income instead.`
-            : `${label}: ${formatPKR(amount)} income ${periodLabel}. Show the number of patients registered instead.`
-        }
-        className="block w-full rounded-xl text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-        whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-      >
-        <motion.div
-          className="relative"
-          style={{ transformStyle: "preserve-3d" }}
-          animate={{ rotateY: flipped ? 180 : 0 }}
-          // A spring reads as the card having weight; someone who has asked for
-          // less motion still gets the new figure, just without the turn.
-          transition={
-            reduceMotion
-              ? { duration: 0 }
-              : { type: "spring", stiffness: 260, damping: 30, mass: 0.9 }
+    // The tilt wraps the flip scene rather than living inside it: the outer
+    // element leans toward the pointer, the inner one keeps its own
+    // perspective for the turn, and the two transforms stay independent.
+    <TiltCard>
+      <div className="flip-scene">
+        <motion.button
+          type="button"
+          onClick={() => setFlipped((previous) => !previous)}
+          aria-pressed={flipped}
+          aria-label={
+            flipped
+              ? `${pluralize(patientCount, "patient")} registered ${periodLabel}. Show admissions income instead.`
+              : `${label}: ${formatPKR(amount)} income ${periodLabel}. Show the number of patients registered instead.`
           }
+          className="block w-full rounded-xl text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          whileTap={reduceMotion ? undefined : { scale: 0.98 }}
         >
-          <Card className="flip-face">
-            {face(
-              label,
-              formatPKR(amount),
-              "Tap for patients registered",
-              true,
-              flipped
-            )}
-          </Card>
-          <Card className="flip-face flip-face-back">
-            {face(
-              "Patients",
-              pluralize(patientCount, "patient"),
-              `Registered ${periodLabel}`,
-              false,
-              !flipped
-            )}
-          </Card>
-        </motion.div>
-      </motion.button>
+          <motion.div
+            className="relative"
+            style={{ transformStyle: "preserve-3d" }}
+            animate={{ rotateY: flipped ? 180 : 0 }}
+            // A spring reads as the card having weight; someone who has asked for
+            // less motion still gets the new figure, just without the turn.
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : { type: "spring", stiffness: 260, damping: 30, mass: 0.9 }
+            }
+          >
+            <Card className="flip-face">
+              {face(
+                label,
+                formatPKR(amount),
+                "Tap for patients registered",
+                true,
+                flipped,
+              )}
+            </Card>
+            <Card className="flip-face flip-face-back">
+              {face(
+                "Patients",
+                pluralize(patientCount, "patient"),
+                `Registered ${periodLabel}`,
+                false,
+                !flipped,
+              )}
+            </Card>
+          </motion.div>
+        </motion.button>
 
-      {/* Announced on change, so the new figure is read without moving focus. */}
-      <p className="sr-only" aria-live="polite">
-        {flipped
-          ? `${pluralize(patientCount, "patient")} registered ${periodLabel}`
-          : `${formatPKR(amount)} from admissions ${periodLabel}`}
-      </p>
-    </div>
-  )
+        {/* Announced on change, so the new figure is read without moving focus. */}
+        <p className="sr-only" aria-live="polite">
+          {flipped
+            ? `${pluralize(patientCount, "patient")} registered ${periodLabel}`
+            : `${formatPKR(amount)} from admissions ${periodLabel}`}
+        </p>
+      </div>
+    </TiltCard>
+  );
 }
