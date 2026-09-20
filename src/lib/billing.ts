@@ -57,3 +57,32 @@ export const BILLING_FILTER_LABELS: Record<BillingFilter, string> = {
 export function isBillingFilter(value: string | undefined): value is BillingFilter {
   return value === "owing" || value === "all"
 }
+
+/**
+ * Who the page is showing, independent of whether they owe anything.
+ *
+ * "registered" is everyone on PMC's books, including patients who have never
+ * been admitted and stays nobody has entered charges against yet - those are
+ * shown saying so, because a family with no bill is a thing the owner wants to
+ * notice, not a row to hide.
+ */
+export type BillingStatus = "admitted" | "discharged" | "registered"
+
+export const BILLING_STATUS_LABELS: Record<BillingStatus, string> = {
+  admitted: "Admitted",
+  discharged: "Discharged",
+  registered: "Registered",
+}
+
+export function isBillingStatus(value: string | undefined): value is BillingStatus {
+  return value === "admitted" || value === "discharged" || value === "registered"
+}
+
+/** True when nothing has been charged, paid or written off against a stay. */
+export function hasNoBill(balance: AdmissionBalance): boolean {
+  return (
+    balance.totalCharges === 0 &&
+    balance.totalPaid === 0 &&
+    balance.totalDiscount === 0
+  )
+}
