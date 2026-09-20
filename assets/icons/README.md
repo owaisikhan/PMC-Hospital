@@ -11,8 +11,17 @@ writes the result to `public/icons/`, which is what the app actually serves.
 | `pharmacy.svg`   | Pharmacy     |
 | `billing.svg`    | Billing      |
 | `expenses.svg`   | Expenses     |
+| `staff.svg`      | Staff        |
+| `settings.svg`   | Settings     |
 
-Staff and Settings have no artwork yet and fall back to a Lucide glyph.
+Every sidebar item has artwork now. `NavItem.icon` is still a Lucide glyph
+for each one, used as the fallback if an image is ever removed.
+
+`settings.svg` was drawn to match the set rather than supplied: same canvas,
+background gradient, glow and shadow filters, palette and sparkle accents as
+`staff.svg`, with the cross in the gear hub to tie it to the others. Its gear
+outlines are generated geometry, so if the tooth count or proportions want
+changing, the generator is easier to rerun than the path is to edit by hand.
 
 ## Why they get cropped
 

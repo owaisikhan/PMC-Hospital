@@ -30,6 +30,9 @@ const CROPS = {
   patients: "560 150 440 440",
   // Both figures whole, with the cross behind them still legible at 20px.
   staff: "205 160 400 400",
+  // Both gears whole; the sliders fall outside, which is fine - at 20px they
+  // were a smear under the gear rather than anything readable.
+  settings: "235 70 430 430",
   // Already square, and built as a tile with its own background.
   expenses: "0 0 800 800",
 }
