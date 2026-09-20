@@ -44,6 +44,9 @@ function describeDbError(message: string): string {
   if (m.includes("ledger_entries_amount_check")) {
     return "The amount must be more than zero."
   }
+  if (m.includes("last_admin")) {
+    return "At least one administrator has to stay active — promote or reactivate someone else first."
+  }
   return message
 }
 
@@ -737,4 +740,141 @@ export async function saveStaff(
     ok: true,
     message: staffId ? "Staff record updated." : `${fullName} added to the staff list.`,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Settings — personal info (anyone) and permissions (admin only)
+// ---------------------------------------------------------------------------
+
+export async function updateOwnName(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  await requireProfile()
+  const supabase = await createClient()
+
+  const fullName = text(form, "full_name")
+  if (!fullName) return fail("Enter your name.")
+
+  // An RPC that only ever writes full_name, rather than a direct update: a
+  // profiles policy that let someone update their own row would need
+  // column-level RLS to stop the same request also touching role or
+  // is_active.
+  const { error } = await supabase.rpc("update_own_full_name", { p_full_name: fullName })
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/", "layout")
+  return { ok: true, message: "Name updated." }
+}
+
+/**
+ * Supabase does not check the current password before accepting a new one,
+ * so this signs in with it first - a wrong entry fails there, before
+ * anything changes, the same as changing a password anywhere else.
+ */
+export async function changePassword(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  const supabase = await createClient()
+
+  const oldPassword = text(form, "old_password")
+  const newPassword = text(form, "new_password")
+  const confirmPassword = text(form, "confirm_password")
+
+  if (!oldPassword) return fail("Enter your current password.")
+  if (newPassword.length < 8) {
+    return fail("The new password must be at least 8 characters.")
+  }
+  if (newPassword !== confirmPassword) return fail("The new passwords do not match.")
+  if (newPassword === oldPassword) {
+    return fail("Choose a password different from your current one.")
+  }
+
+  const { error: verifyError } = await supabase.auth.signInWithPassword({
+    email: profile.email,
+    password: oldPassword,
+  })
+  if (verifyError) return fail("Your current password is incorrect.")
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword })
+  if (error) return fail(describeDbError(error.message))
+
+  return { ok: true, message: "Password changed." }
+}
+
+/**
+ * One object at a fixed path, upserted in place - the sidebar always reads
+ * the same public URL rather than tracking whichever file was uploaded most
+ * recently.
+ */
+export async function uploadLogo(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") {
+    return fail("Only an administrator can change the clinic logo.")
+  }
+
+  const file = form.get("logo")
+  if (!(file instanceof File) || file.size === 0) return fail("Choose an image to upload.")
+  if (!file.type.startsWith("image/")) return fail("Choose an image file (PNG or JPEG).")
+  if (file.size > 2 * 1024 * 1024) return fail("Keep the image under 2 MB.")
+
+  const supabase = await createClient()
+  const path = `logo.${file.type === "image/png" ? "png" : "jpg"}`
+
+  const { error: uploadError } = await supabase.storage
+    .from("branding")
+    .upload(path, file, { upsert: true, contentType: file.type })
+  if (uploadError) return fail(describeDbError(uploadError.message))
+
+  const { data } = supabase.storage.from("branding").getPublicUrl(path)
+  // Same path every time, so the query string is what busts each browser's
+  // cached copy of the old logo.
+  const url = `${data.publicUrl}?v=${Date.now()}`
+
+  const { error } = await supabase
+    .from("settings")
+    .upsert({ key: "branding", value: { logo_url: url } }, { onConflict: "key" })
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/", "layout")
+  return { ok: true, message: "Logo updated." }
+}
+
+/**
+ * Approve a pending signup, promote or demote a role, or deactivate /
+ * reactivate a login. Never the caller's own row - the button for that is
+ * not offered - and the last active admin cannot be removed this way
+ * regardless, guarded at the row level by prevent_last_admin_removal.
+ */
+export async function setLogin(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") return fail("Only an administrator can manage logins.")
+
+  const supabase = await createClient()
+  const userId = text(form, "user_id")
+  const role = text(form, "role")
+  const isActive = text(form, "is_active")
+
+  if (!userId) return fail("Missing the login.")
+  if (userId === profile.id) return fail("You cannot change your own access here.")
+  if (!["admin", "staff"].includes(role)) return fail("Choose a role.")
+  if (!["true", "false"].includes(isActive)) return fail("Missing the status.")
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role, is_active: isActive === "true" })
+    .eq("id", userId)
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/settings")
+  return { ok: true, message: "Login updated." }
 }

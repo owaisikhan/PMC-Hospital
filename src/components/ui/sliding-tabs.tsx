@@ -6,6 +6,8 @@ import { motion, useReducedMotion } from "motion/react"
 import {
   Banknote,
   BedDouble,
+  ShieldCheck,
+  User,
   Users,
   Wallet,
   type LucideIcon,
@@ -27,6 +29,8 @@ const TAB_ICONS = {
   banknote: Banknote,
   bed: BedDouble,
   users: Users,
+  user: User,
+  shield: ShieldCheck,
 } satisfies Record<string, LucideIcon>
 
 export type TabIconName = keyof typeof TAB_ICONS

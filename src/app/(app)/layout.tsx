@@ -2,6 +2,7 @@ import { RoleProvider } from "@/components/layout/role-context"
 import { Sidebar } from "@/components/layout/sidebar"
 import { ToastProvider } from "@/components/layout/toast-context"
 import { Topbar } from "@/components/layout/topbar"
+import { createClient } from "@/lib/supabase/server"
 import { requireProfile } from "@/lib/supabase/session"
 
 export default async function AppLayout({
@@ -13,10 +14,21 @@ export default async function AppLayout({
   // database's row level security when it actually reads anything.
   const profile = await requireProfile()
 
+  // Anyone signed in can read this row (RLS: "read settings"), so the logo
+  // shows the same for every login rather than only once Settings has been
+  // visited.
+  const supabase = await createClient()
+  const { data: branding } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", "branding")
+    .maybeSingle()
+  const logoUrl = (branding?.value as { logo_url?: string } | null)?.logo_url ?? null
+
   return (
     <ToastProvider>
       <div className="flex h-dvh overflow-hidden">
-        <Sidebar role={profile.role} />
+        <Sidebar role={profile.role} logoUrl={logoUrl} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar profile={profile} />
           <main className="flex-1 overflow-y-auto bg-muted/30">

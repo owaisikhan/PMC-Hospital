@@ -14,15 +14,20 @@ import { cn } from "@/lib/utils"
  * server-to-client boundary. Building the list here keeps only a plain string
  * crossing over.
  */
-export function Sidebar({ role }: { role: UserRole }) {
+export function Sidebar({ role, logoUrl }: { role: UserRole; logoUrl?: string | null }) {
   const pathname = usePathname()
   const sections = visibleSections(role)
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
       <Link href="/" className="flex h-14 items-center gap-2 px-4">
-        <span className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <HeartPulse className="size-4.5" />
+        <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- a small, admin-uploaded logo; not worth the image optimizer.
+            <img src={logoUrl} alt="" className="size-full object-contain" />
+          ) : (
+            <HeartPulse className="size-4.5" />
+          )}
         </span>
         <span className="flex flex-col leading-tight">
           <span className="text-sm font-semibold tracking-tight text-sidebar-foreground">
