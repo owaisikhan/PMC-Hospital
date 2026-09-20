@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
 import { useFormValues } from "@/hooks/use-form-values"
+import { useToastOnResult } from "@/hooks/use-toast-on-result"
 import {
   applyDiscount,
   recordPayment,
@@ -29,6 +30,7 @@ function useClosingAction(
     action,
     null
   )
+  useToastOnResult(result)
   useEffect(() => {
     if (result?.ok) {
       const timer = setTimeout(onDone, 1600)

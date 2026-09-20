@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
 import { useFormValues } from "@/hooks/use-form-values"
+import { useToastOnResult } from "@/hooks/use-toast-on-result"
 import { addSupport, dischargePatient, type ActionResult } from "@/lib/actions"
 import { todayISO } from "@/lib/dates"
 import { formatPKR } from "@/lib/format"
@@ -30,6 +31,7 @@ export function AddSupportButton({
     null
   )
   const { formRef, captureValues } = useFormValues(result)
+  useToastOnResult(result)
 
   useEffect(() => {
     if (result?.ok) {
@@ -141,6 +143,7 @@ export function DischargeButton({
     null
   )
   const { formRef, captureValues } = useFormValues(result)
+  useToastOnResult(result)
 
   useEffect(() => {
     if (result?.ok) {

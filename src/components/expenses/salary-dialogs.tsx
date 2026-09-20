@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
 import { useFormValues } from "@/hooks/use-form-values"
+import { useToastOnResult } from "@/hooks/use-toast-on-result"
 import { paySalary, type ActionResult } from "@/lib/actions"
 import { monthLabel, todayISO } from "@/lib/dates"
 import { formatPKR } from "@/lib/format"
@@ -42,6 +43,7 @@ export function PaySalaryButton({
     null
   )
   const { formRef, captureValues } = useFormValues(result)
+  useToastOnResult(result)
 
   useEffect(() => {
     if (result?.ok) {

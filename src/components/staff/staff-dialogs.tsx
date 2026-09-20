@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
 import { useFormValues } from "@/hooks/use-form-values"
+import { useToastOnResult } from "@/hooks/use-toast-on-result"
 import { saveStaff, type ActionResult } from "@/lib/actions"
 import { todayISO } from "@/lib/dates"
 
@@ -31,6 +32,7 @@ function StaffForm({ staff, onClose }: { staff?: StaffRecord; onClose: () => voi
     null,
   )
   const { formRef, captureValues } = useFormValues(result)
+  useToastOnResult(result)
 
   useEffect(() => {
     if (result?.ok) {

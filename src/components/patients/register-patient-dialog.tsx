@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
 import { useFormValues } from "@/hooks/use-form-values"
+import { useToastOnResult } from "@/hooks/use-toast-on-result"
 import { registerPatient, type ActionResult } from "@/lib/actions"
 import { todayISO } from "@/lib/dates"
 
@@ -21,6 +22,7 @@ export function RegisterPatientDialog({
     null
   )
   const { formRef, captureValues } = useFormValues(result)
+  useToastOnResult(result)
 
   // Close only once the database has confirmed. A refusal keeps the dialog
   // open, because that message is the whole interaction.
