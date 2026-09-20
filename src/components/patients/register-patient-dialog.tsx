@@ -45,11 +45,11 @@ export function RegisterPatientDialog({
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Register a child"
+        title="Register a patient"
         description="The medical record number is created automatically."
       >
         <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
-          <Field label="Child's name" htmlFor="full_name" required>
+          <Field label="Patient's name" htmlFor="full_name" required>
             <input id="full_name" name="full_name" required autoComplete="off" className={controlClass} />
           </Field>
 
@@ -117,7 +117,7 @@ export function RegisterPatientDialog({
               className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
             >
               {pending ? <Loader2 className="size-4.5 animate-spin" aria-hidden /> : null}
-              {pending ? "Saving…" : "Register child"}
+              {pending ? "Saving…" : "Register patient"}
             </button>
           </div>
         </form>

@@ -52,7 +52,7 @@ export default async function DashboardPage({
       .select("id", { count: "exact", head: true })
       .gte("created_at", businessDayStart(range.from))
       .lte("created_at", businessDayEnd(range.to)),
-    // Rows rather than a head count: the ward ids give both how many children
+    // Rows rather than a head count: the ward ids give both how many patients
     // are in and how many wards are in use, from one query.
     supabase.from("admissions").select("ward_id").is("discharged_on", null),
     supabase

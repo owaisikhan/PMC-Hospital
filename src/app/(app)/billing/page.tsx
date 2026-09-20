@@ -147,7 +147,7 @@ export default async function BillingPage({
             <p className="text-base text-muted-foreground">
               {filter === "owing"
                 ? "Every bill has been settled."
-                : "A bill appears here as soon as a child is admitted."}
+                : "A bill appears here as soon as a patient is admitted."}
             </p>
           </div>
         ) : (

@@ -10,7 +10,7 @@ import { formatPKR, pluralize } from "@/lib/format"
 interface FlipRevenueCardProps {
   label: string
   amount: number
-  /** Children registered inside the same period as the money on the front. */
+  /** Patients registered inside the same period as the money on the front. */
   patientCount: number
   /** Human-readable period, e.g. "this week", used in the captions. */
   periodLabel: string

@@ -31,9 +31,9 @@ export interface RateOption {
 }
 
 /**
- * One screen for the whole arrival: find the child, or register them without
+ * One screen for the whole arrival: find the patient, or register them without
  * leaving, then choose ward and care level. Splitting this in two meant typing
- * a name, navigating away, then searching for the child just created.
+ * a name, navigating away, then searching for the patient just created.
  */
 export function AdmitDialog({
   patients,
@@ -88,12 +88,12 @@ export function AdmitDialog({
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Admit a child"
-        description="Find the child, then choose the ward and what is being charged."
+        title="Admit a patient"
+        description="Find the patient, then choose the ward and what is being charged."
       >
         <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <Field
-            label="Find the child"
+            label="Find the patient"
             htmlFor="patient_search"
             required
             hint="Type a name or medical record number."
@@ -114,7 +114,7 @@ export function AdmitDialog({
 
           {!selected && term ? (
             matches.length > 0 ? (
-              <ul className="flex flex-col gap-1 rounded-lg border border-border p-1">
+              <ul className="flex max-h-52 flex-col gap-1 overflow-y-auto rounded-lg border border-border p-1">
                 {matches.map((patient) => (
                   <li key={patient.id}>
                     <button
@@ -134,7 +134,7 @@ export function AdmitDialog({
               </ul>
             ) : (
               <p className="rounded-lg bg-muted px-3 py-2.5 text-base text-muted-foreground">
-                No child matches. Register them on the Patients page first, then
+                No patient matches. Register them on the Patients page first, then
                 come back.
               </p>
             )
@@ -211,7 +211,7 @@ export function AdmitDialog({
               className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
             >
               {pending ? <Loader2 className="size-4.5 animate-spin" aria-hidden /> : null}
-              {pending ? "Admitting…" : "Admit child"}
+              {pending ? "Admitting…" : "Admit patient"}
             </button>
           </div>
         </form>

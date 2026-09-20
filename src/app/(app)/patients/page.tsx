@@ -128,7 +128,7 @@ export default async function PatientsPage({
     <>
       <PageHeader
         title="Patients"
-        description="Every child registered at PMC, and who is admitted right now."
+        description="Every patient registered at PMC, and who is admitted right now."
         actions={
           <div className="flex flex-wrap gap-2">
             <RegisterPatientDialog />
@@ -156,16 +156,16 @@ export default async function PatientsPage({
             )}
             <p className="text-base font-medium">
               {query
-                ? "No child matches that search."
+                ? "No patient matches that search."
                 : filter === "admitted"
                   ? "Nobody is admitted right now."
-                  : "No children registered yet."}
+                  : "No patients registered yet."}
             </p>
             <p className="text-base text-muted-foreground">
               {query
                 ? "Check the spelling, or try “All patients”."
                 : filter === "admitted"
-                  ? "Use “Admit patient” above when a child is admitted."
+                  ? "Use “Admit patient” above when a patient is admitted."
                   : "Use “Register patient” above to add the first one."}
             </p>
           </div>
@@ -249,7 +249,7 @@ export default async function PatientsPage({
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-base text-muted-foreground">
-                {total} {total === 1 ? "child" : "children"} · page {page} of {lastPage}
+                {total} {total === 1 ? "patient" : "patients"} · page {page} of {lastPage}
               </p>
               <Pager page={page} lastPage={lastPage} query={query} filter={filter} />
             </div>

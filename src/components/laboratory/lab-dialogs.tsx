@@ -77,7 +77,7 @@ export function NewLabOrderButton({
       >
         <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <Field
-            label="Find the child"
+            label="Find the patient"
             htmlFor="lab_patient_search"
             required
             hint="Type a name or medical record number."
@@ -97,7 +97,7 @@ export function NewLabOrderButton({
 
           {!selected && term ? (
             matches.length > 0 ? (
-              <ul className="flex flex-col gap-1 rounded-lg border border-border p-1">
+              <ul className="flex max-h-52 flex-col gap-1 overflow-y-auto rounded-lg border border-border p-1">
                 {matches.map((patient) => (
                   <li key={patient.id}>
                     <button
@@ -115,7 +115,7 @@ export function NewLabOrderButton({
               </ul>
             ) : (
               <p className="rounded-lg bg-muted px-3 py-2.5 text-base text-muted-foreground">
-                No child matches. Register them on the Patients page first.
+                No patient matches. Register them on the Patients page first.
               </p>
             )
           ) : null}

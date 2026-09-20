@@ -146,7 +146,7 @@ export default async function PatientPage({
 
           {stays.length === 0 ? (
             <p className="rounded-xl border border-dashed border-border px-6 py-10 text-center text-base text-muted-foreground">
-              This child has never been admitted. Use “Admit patient” on the
+              This patient has never been admitted. Use “Admit patient” on the
               Patients page.
             </p>
           ) : (

@@ -66,7 +66,7 @@ export async function registerPatient(
   const dateOfBirth = text(form, "date_of_birth")
   const gender = text(form, "gender")
 
-  if (!fullName) return fail("Enter the child's name.")
+  if (!fullName) return fail("Enter the patient's name.")
   if (!dateOfBirth) return fail("Enter the date of birth.")
   if (dateOfBirth > todayISO()) return fail("Date of birth cannot be in the future.")
   if (!["male", "female", "other"].includes(gender)) return fail("Choose the gender.")
@@ -108,7 +108,7 @@ export async function admitPatient(
   const chargeRateId = text(form, "charge_rate_id")
   const admittedOn = text(form, "admitted_on") || todayISO()
 
-  if (!patientId) return fail("Choose the child being admitted.")
+  if (!patientId) return fail("Choose the patient being admitted.")
   if (!wardId) return fail("Choose a ward.")
   if (!chargeRateId) return fail("Choose the care level being charged.")
   if (admittedOn > todayISO()) return fail("The admission date cannot be in the future.")
@@ -121,7 +121,7 @@ export async function admitPatient(
     .maybeSingle()
 
   if (openStay) {
-    return fail("This child is already admitted. Discharge the current stay first.")
+    return fail("This patient is already admitted. Discharge the current stay first.")
   }
 
   const { data: admission, error: admitError } = await supabase
@@ -432,7 +432,7 @@ export async function recordLabOrder(
   const orderedOn = text(form, "ordered_on") || todayISO()
   const paidNow = form.get("paid_now") === "on"
 
-  if (!patientId) return fail("Choose the child the test is for.")
+  if (!patientId) return fail("Choose the patient the test is for.")
   if (!testId) return fail("Choose the test.")
   if (orderedOn > todayISO()) return fail("The order date cannot be in the future.")
 
@@ -446,7 +446,7 @@ export async function recordLabOrder(
 
   if (testError || !test) return fail("That test no longer exists.")
 
-  // If the child is currently admitted, attach the order to that stay so it
+  // If the patient is currently admitted, attach the order to that stay so it
   // shows on their record.
   const { data: openStay } = await supabase
     .from("admissions")
