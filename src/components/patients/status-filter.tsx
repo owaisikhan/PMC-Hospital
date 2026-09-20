@@ -1,10 +1,19 @@
-import { SlidingTabs, type TabItem } from "@/components/ui/sliding-tabs"
+import {
+  SlidingTabs,
+  type TabIconName,
+  type TabItem,
+} from "@/components/ui/sliding-tabs"
 
 export type PatientFilter = "admitted" | "all"
 
 export const FILTER_LABELS: Record<PatientFilter, string> = {
   admitted: "Admitted now",
   all: "All patients",
+}
+
+const FILTER_ICONS: Record<PatientFilter, TabIconName> = {
+  admitted: "bed",
+  all: "users",
 }
 
 export function isPatientFilter(value: string | undefined): value is PatientFilter {
@@ -31,6 +40,7 @@ export function StatusFilter({
       return {
         key: filter,
         label: FILTER_LABELS[filter],
+        icon: FILTER_ICONS[filter],
         href: `/patients?${params.toString()}`,
       }
     }

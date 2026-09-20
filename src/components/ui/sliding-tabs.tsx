@@ -3,14 +3,41 @@
 import Link from "next/link"
 import { useState } from "react"
 import { motion, useReducedMotion } from "motion/react"
+import {
+  Banknote,
+  BedDouble,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react"
 
 import { cn } from "@/lib/utils"
+
+/**
+ * Icons are looked up by name rather than passed in.
+ *
+ * A Lucide icon is a React component, and a component cannot be serialised
+ * across the server-to-client boundary - handing one to this component as a
+ * prop throws "Functions cannot be passed directly to Client Components" at
+ * request time while still building cleanly. The server components that render
+ * these tabs send a string; the mapping happens here, on the client.
+ */
+const TAB_ICONS = {
+  wallet: Wallet,
+  banknote: Banknote,
+  bed: BedDouble,
+  users: Users,
+} satisfies Record<string, LucideIcon>
+
+export type TabIconName = keyof typeof TAB_ICONS
 
 export interface TabItem {
   /** Stable value, matched against `active`. */
   key: string
   label: string
   href: string
+  /** Optional icon, by name - see TAB_ICONS above for why it is not a component. */
+  icon?: TabIconName
 }
 
 /**
@@ -64,6 +91,7 @@ export function SlidingTabs({
       {items.map((item) => {
         const isActive = item.key === active
         const hasPill = item.key === pill
+        const Icon = item.icon ? TAB_ICONS[item.icon] : null
 
         const body = (
           <>
@@ -79,8 +107,15 @@ export function SlidingTabs({
                 }
               />
             ) : null}
-            {/* Above the pill, so the label is not painted over mid-slide. */}
-            <span className="relative z-10">{item.label}</span>
+            {/* Above the pill, so neither is painted over mid-slide. The icon
+                inherits the label's colour, so it turns white on the selected
+                pill and grey elsewhere without a second rule. */}
+            <span className="relative z-10 flex items-center gap-2">
+              {Icon ? (
+                <Icon className={size === "large" ? "size-4.5" : "size-4"} aria-hidden />
+              ) : null}
+              {item.label}
+            </span>
           </>
         )
 

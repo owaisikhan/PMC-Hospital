@@ -8,7 +8,11 @@ import { MonthPicker } from "@/components/expenses/month-picker";
 import { PaySalaryButton } from "@/components/expenses/salary-dialogs";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
-import { SlidingTabs, type TabItem } from "@/components/ui/sliding-tabs";
+import {
+  SlidingTabs,
+  type TabIconName,
+  type TabItem,
+} from "@/components/ui/sliding-tabs";
 import { TabPanel } from "@/components/ui/tab-panel";
 import { monthLabel, nextMonthStartISO, recentMonths } from "@/lib/dates";
 import { formatPKR } from "@/lib/format";
@@ -23,6 +27,11 @@ type ExpensesTab = (typeof TABS)[number];
 const TAB_LABELS: Record<ExpensesTab, string> = {
   expenses: "Expenses",
   salaries: "Salaries",
+}
+
+const TAB_ICONS: Record<ExpensesTab, TabIconName> = {
+  expenses: "wallet",
+  salaries: "banknote",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -146,6 +155,7 @@ export default async function ExpensesPage({
   const tabItems: TabItem[] = TABS.map((key) => ({
     key,
     label: TAB_LABELS[key],
+    icon: TAB_ICONS[key],
     href: `/expenses?tab=${key}&month=${month}`,
   }));
 
