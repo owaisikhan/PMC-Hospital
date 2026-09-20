@@ -54,10 +54,20 @@ export function Sidebar({ role }: { role: UserRole }) {
                         "flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors",
                         isActive
                           ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                          : "text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                          : "text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                       )}
                     >
-                      <item.icon className="size-4 shrink-0" />
+                      {item.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- fixed-size decorative icon; Next does not optimise SVG, and serving these as files keeps ~45KB of markup out of the JS bundle
+                        <img
+                          src={item.image}
+                          alt=""
+                          aria-hidden
+                          className="size-5 shrink-0"
+                        />
+                      ) : (
+                        <item.icon className="size-5 shrink-0" />
+                      )}
                       {item.label}
                     </Link>
                   </li>

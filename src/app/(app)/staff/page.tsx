@@ -1,48 +1,46 @@
-import { Users } from "lucide-react";
+import { Users } from "lucide-react"
 
-import { PageHeader } from "@/components/layout/page-header";
+import { PageHeader } from "@/components/layout/page-header"
 import {
   AddStaffButton,
   EditStaffButton,
   type StaffRecord,
-} from "@/components/staff/staff-dialogs";
-import { Badge } from "@/components/ui/badge";
-import { formatPKR } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/supabase/session";
+} from "@/components/staff/staff-dialogs"
+import { Badge } from "@/components/ui/badge"
+import { formatPKR } from "@/lib/format"
+import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/supabase/session"
 
-export const metadata = { title: "Staff" };
+export const metadata = { title: "Staff" }
 
 interface StaffRow {
-  id: string;
-  full_name: string;
-  designation: string;
-  monthly_salary: string;
-  phone: string | null;
-  joined_on: string;
-  is_active: boolean;
+  id: string
+  full_name: string
+  designation: string
+  monthly_salary: string
+  phone: string | null
+  joined_on: string
+  is_active: boolean
 }
 
 export default async function StaffPage() {
   // Hiding the sidebar link is tidiness, not access control: without this a
   // staff member who types the URL reaches the page. Salaries are on it.
-  await requireAdmin();
+  await requireAdmin()
 
-  const supabase = await createClient();
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from("staff")
-    .select(
-      "id, full_name, designation, monthly_salary, phone, joined_on, is_active",
-    )
+    .select("id, full_name, designation, monthly_salary, phone, joined_on, is_active")
     .order("is_active", { ascending: false })
-    .order("monthly_salary", { ascending: false });
+    .order("monthly_salary", { ascending: false })
 
-  const staff = (data ?? []) as StaffRow[];
-  const working = staff.filter((person) => person.is_active);
+  const staff = (data ?? []) as StaffRow[]
+  const working = staff.filter((person) => person.is_active)
   const monthlyBill = working.reduce(
     (sum, person) => sum + Number(person.monthly_salary),
     0,
-  );
+  )
 
   return (
     <>
@@ -99,10 +97,7 @@ export default async function StaffPage() {
                     <th scope="col" className="px-4 py-3 font-medium">
                       Joined
                     </th>
-                    <th
-                      scope="col"
-                      className="px-4 py-3 text-right font-medium"
-                    >
+                    <th scope="col" className="px-4 py-3 text-right font-medium">
                       Monthly salary
                     </th>
                     <th scope="col" className="px-4 py-3 font-medium">
@@ -159,13 +154,13 @@ export default async function StaffPage() {
             </div>
 
             <p className="text-sm text-muted-foreground">
-              The agreed salary is what the monthly salary run fills in. Marking
-              someone as having left keeps their record and their past payments,
-              and takes them out of the run.
+              The agreed salary is what the monthly salary run fills in. Marking someone
+              as having left keeps their record and their past payments, and takes them
+              out of the run.
             </p>
           </>
         )}
       </div>
     </>
-  );
+  )
 }

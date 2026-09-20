@@ -1,28 +1,24 @@
-import { UserPlus, Wallet } from "lucide-react";
+import { UserPlus, Wallet } from "lucide-react"
 
 import {
   RecordExpenseButton,
   ReverseExpenseButton,
-} from "@/components/expenses/expense-dialogs";
-import { MonthPicker } from "@/components/expenses/month-picker";
-import { PaySalaryButton } from "@/components/expenses/salary-dialogs";
-import { PageHeader } from "@/components/layout/page-header";
-import { Badge } from "@/components/ui/badge";
-import {
-  SlidingTabs,
-  type TabIconName,
-  type TabItem,
-} from "@/components/ui/sliding-tabs";
-import { TabPanel } from "@/components/ui/tab-panel";
-import { monthLabel, nextMonthStartISO, recentMonths } from "@/lib/dates";
-import { formatPKR } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/supabase/session";
+} from "@/components/expenses/expense-dialogs"
+import { MonthPicker } from "@/components/expenses/month-picker"
+import { PaySalaryButton } from "@/components/expenses/salary-dialogs"
+import { PageHeader } from "@/components/layout/page-header"
+import { Badge } from "@/components/ui/badge"
+import { SlidingTabs, type TabIconName, type TabItem } from "@/components/ui/sliding-tabs"
+import { TabPanel } from "@/components/ui/tab-panel"
+import { monthLabel, nextMonthStartISO, recentMonths } from "@/lib/dates"
+import { formatPKR } from "@/lib/format"
+import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/supabase/session"
 
-export const metadata = { title: "Expenses" };
+export const metadata = { title: "Expenses" }
 
-const TABS = ["expenses", "salaries"] as const;
-type ExpensesTab = (typeof TABS)[number];
+const TABS = ["expenses", "salaries"] as const
+type ExpensesTab = (typeof TABS)[number]
 
 const TAB_LABELS: Record<ExpensesTab, string> = {
   expenses: "Expenses",
@@ -32,7 +28,7 @@ const TAB_LABELS: Record<ExpensesTab, string> = {
 const TAB_ICONS: Record<ExpensesTab, TabIconName> = {
   expenses: "wallet",
   salaries: "banknote",
-};
+}
 
 const CATEGORY_LABELS: Record<string, string> = {
   rent: "Rent",
@@ -41,43 +37,39 @@ const CATEGORY_LABELS: Record<string, string> = {
   pharmacy_purchase: "Pharmacy stock",
   lab_payout: "Lab settlements",
   other: "Other",
-};
+}
 
 /** Categories the manual form cannot write, so the page can say where they came from. */
-const AUTOMATIC_CATEGORIES = new Set([
-  "salaries",
-  "pharmacy_purchase",
-  "lab_payout",
-]);
+const AUTOMATIC_CATEGORIES = new Set(["salaries", "pharmacy_purchase", "lab_payout"])
 
 interface ExpenseRow {
-  id: string;
-  expense_cat: string;
-  amount: string;
-  occurred_on: string;
-  method: string;
-  description: string | null;
+  id: string
+  expense_cat: string
+  amount: string
+  occurred_on: string
+  method: string
+  description: string | null
 }
 
 export default async function ExpensesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; month?: string }>;
+  searchParams: Promise<{ tab?: string; month?: string }>
 }) {
-  const { tab: rawTab, month: rawMonth } = await searchParams;
+  const { tab: rawTab, month: rawMonth } = await searchParams
 
   // Hiding the sidebar link is tidiness, not access control: without this a
   // staff member who types the URL reaches the page.
-  await requireAdmin();
+  await requireAdmin()
 
   const tab: ExpensesTab = TABS.includes(rawTab as ExpensesTab)
     ? (rawTab as ExpensesTab)
-    : "expenses";
-  const months = recentMonths(12);
-  const month = rawMonth && months.includes(rawMonth) ? rawMonth : months[0];
-  const monthEnd = nextMonthStartISO(month);
+    : "expenses"
+  const months = recentMonths(12)
+  const month = rawMonth && months.includes(rawMonth) ? rawMonth : months[0]
+  const monthEnd = nextMonthStartISO(month)
 
-  const supabase = await createClient();
+  const supabase = await createClient()
 
   // Outbound entries for the month, plus every reversal so a cancelled expense
   // can be shown struck through rather than silently dropped.
@@ -97,67 +89,62 @@ export default async function ExpensesPage({
         .not("reverses_id", "is", null),
       supabase
         .from("staff")
-        .select(
-          "id, full_name, designation, monthly_salary, phone, joined_on, is_active",
-        )
+        .select("id, full_name, designation, monthly_salary, phone, joined_on, is_active")
         .order("is_active", { ascending: false })
         .order("monthly_salary", { ascending: false }),
       supabase
         .from("salary_payments")
         .select("staff_id, amount, paid_on")
         .eq("for_month", month),
-    ]);
+    ])
 
-  const expenses = (expensesResult.data ?? []) as ExpenseRow[];
+  const expenses = (expensesResult.data ?? []) as ExpenseRow[]
   const reversed = new Set(
     (reversalsResult.data ?? []).map((r) => r.reverses_id as string),
-  );
+  )
   const allStaff = (staffResult.data ?? []) as {
-    id: string;
-    full_name: string;
-    designation: string;
-    monthly_salary: string;
-    phone: string | null;
-    joined_on: string;
-    is_active: boolean;
-  }[];
+    id: string
+    full_name: string
+    designation: string
+    monthly_salary: string
+    phone: string | null
+    joined_on: string
+    is_active: boolean
+  }[]
   const paidByStaff = new Map(
     (paymentsResult.data ?? []).map((p) => [
       p.staff_id as string,
       { amount: Number(p.amount), paidOn: p.paid_on as string },
     ]),
-  );
+  )
 
   // Reversed entries are excluded from every total, matching money_summary.
-  const live = expenses.filter((row) => !reversed.has(row.id));
-  const monthTotal = live.reduce((sum, row) => sum + Number(row.amount), 0);
+  const live = expenses.filter((row) => !reversed.has(row.id))
+  const monthTotal = live.reduce((sum, row) => sum + Number(row.amount), 0)
 
-  const byCategory = new Map<string, number>();
+  const byCategory = new Map<string, number>()
   for (const row of live) {
     byCategory.set(
       row.expense_cat,
       (byCategory.get(row.expense_cat) ?? 0) + Number(row.amount),
-    );
+    )
   }
-  const categories = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
+  const categories = [...byCategory.entries()].sort((a, b) => b[1] - a[1])
 
-  const activeStaff = allStaff.filter((s) => s.is_active);
-  const paidCount = activeStaff.filter((s) => paidByStaff.has(s.id)).length;
-  const wageBill = activeStaff.reduce(
-    (sum, s) => sum + Number(s.monthly_salary),
-    0,
-  );
+  const activeStaff = allStaff.filter((s) => s.is_active)
+  const paidCount = activeStaff.filter((s) => paidByStaff.has(s.id)).length
+  const wageBill = activeStaff.reduce((sum, s) => sum + Number(s.monthly_salary), 0)
   const paidTotal = activeStaff.reduce(
     (sum, s) => sum + (paidByStaff.get(s.id)?.amount ?? 0),
     0,
-  );
+  )
 
   const tabItems: TabItem[] = TABS.map((key) => ({
     key,
     label: TAB_LABELS[key],
     icon: TAB_ICONS[key],
     href: `/expenses?tab=${key}&month=${month}`,
-  }));
+  }))
 
   return (
     <>
@@ -213,17 +200,13 @@ export default async function ExpensesPage({
                 month={month}
               />
             ) : (
-              <SalariesTab
-                staff={activeStaff}
-                paidByStaff={paidByStaff}
-                month={month}
-              />
+              <SalariesTab staff={activeStaff} paidByStaff={paidByStaff} month={month} />
             )}
           </div>
         </TabPanel>
       </div>
     </>
-  );
+  )
 }
 
 function EmptyState({
@@ -231,9 +214,9 @@ function EmptyState({
   title,
   hint,
 }: {
-  icon: typeof Wallet;
-  title: string;
-  hint: string;
+  icon: typeof Wallet
+  title: string
+  hint: string
 }) {
   return (
     <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-14 text-center">
@@ -241,7 +224,7 @@ function EmptyState({
       <p className="text-base font-medium">{title}</p>
       <p className="text-base text-muted-foreground">{hint}</p>
     </div>
-  );
+  )
 }
 
 function ExpensesTab({
@@ -251,11 +234,11 @@ function ExpensesTab({
   monthTotal,
   month,
 }: {
-  rows: ExpenseRow[];
-  reversed: Set<string>;
-  categories: [string, number][];
-  monthTotal: number;
-  month: string;
+  rows: ExpenseRow[]
+  reversed: Set<string>
+  categories: [string, number][]
+  monthTotal: number
+  month: string
 }) {
   if (rows.length === 0) {
     return (
@@ -264,7 +247,7 @@ function ExpensesTab({
         title={`Nothing was paid out in ${monthLabel(month)}.`}
         hint="Use “Record expense” above for rent, electricity or anything else."
       />
-    );
+    )
   }
 
   return (
@@ -283,8 +266,7 @@ function ExpensesTab({
               {formatPKR(total)}
             </span>
             <span className="text-xs text-muted-foreground tabular-nums">
-              {monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0}% of
-              the month
+              {monthTotal > 0 ? Math.round((total / monthTotal) * 100) : 0}% of the month
             </span>
           </div>
         ))}
@@ -295,9 +277,7 @@ function ExpensesTab({
           clipped here instead of escaping to the document. */}
       <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full min-w-[48rem] border-collapse text-base">
-          <caption className="sr-only">
-            Expenses recorded in {monthLabel(month)}
-          </caption>
+          <caption className="sr-only">Expenses recorded in {monthLabel(month)}</caption>
           <thead>
             <tr className="border-b border-border text-left">
               <th scope="col" className="px-4 py-3 font-medium">
@@ -322,22 +302,17 @@ function ExpensesTab({
           </thead>
           <tbody>
             {rows.map((row) => {
-              const isReversed = reversed.has(row.id);
-              const automatic = AUTOMATIC_CATEGORIES.has(row.expense_cat);
+              const isReversed = reversed.has(row.id)
+              const automatic = AUTOMATIC_CATEGORIES.has(row.expense_cat)
 
               return (
-                <tr
-                  key={row.id}
-                  className="border-b border-border/60 last:border-b-0"
-                >
+                <tr key={row.id} className="border-b border-border/60 last:border-b-0">
                   <td className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
                     {row.occurred_on}
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={
-                        isReversed ? "text-muted-foreground line-through" : ""
-                      }
+                      className={isReversed ? "text-muted-foreground line-through" : ""}
                     >
                       {row.description ?? "—"}
                     </span>
@@ -381,18 +356,18 @@ function ExpensesTab({
                     )}
                   </td>
                 </tr>
-              );
+              )
             })}
           </tbody>
         </table>
       </div>
 
       <p className="text-sm text-muted-foreground">
-        A reversed entry stays on the record and is left out of every total. The
-        ledger is never edited.
+        A reversed entry stays on the record and is left out of every total. The ledger is
+        never edited.
       </p>
     </>
-  );
+  )
 }
 
 function SalariesTab({
@@ -401,16 +376,16 @@ function SalariesTab({
   month,
 }: {
   staff: {
-    id: string;
-    full_name: string;
-    designation: string;
-    monthly_salary: string;
-    phone: string | null;
-    joined_on: string;
-    is_active: boolean;
-  }[];
-  paidByStaff: Map<string, { amount: number; paidOn: string }>;
-  month: string;
+    id: string
+    full_name: string
+    designation: string
+    monthly_salary: string
+    phone: string | null
+    joined_on: string
+    is_active: boolean
+  }[]
+  paidByStaff: Map<string, { amount: number; paidOn: string }>
+  month: string
 }) {
   if (staff.length === 0) {
     return (
@@ -419,16 +394,14 @@ function SalariesTab({
         title="Nobody is on the payroll yet."
         hint="Add people on the Staff page, then their salaries can be paid here."
       />
-    );
+    )
   }
 
   return (
     <>
       <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full min-w-[46rem] border-collapse text-base">
-          <caption className="sr-only">
-            Salary run for {monthLabel(month)}
-          </caption>
+          <caption className="sr-only">Salary run for {monthLabel(month)}</caption>
           <thead>
             <tr className="border-b border-border text-left">
               <th scope="col" className="px-4 py-3 font-medium">
@@ -450,15 +423,12 @@ function SalariesTab({
           </thead>
           <tbody>
             {staff.map((person) => {
-              const payment = paidByStaff.get(person.id);
-              const salary = Number(person.monthly_salary);
-              const short = payment ? salary - payment.amount : 0;
+              const payment = paidByStaff.get(person.id)
+              const salary = Number(person.monthly_salary)
+              const short = payment ? salary - payment.amount : 0
 
               return (
-                <tr
-                  key={person.id}
-                  className="border-b border-border/60 last:border-b-0"
-                >
+                <tr key={person.id} className="border-b border-border/60 last:border-b-0">
                   <td className="px-4 py-3">
                     <span className="font-medium">{person.full_name}</span>
                     <span className="block text-sm text-muted-foreground">
@@ -505,16 +475,16 @@ function SalariesTab({
                     )}
                   </td>
                 </tr>
-              );
+              )
             })}
           </tbody>
         </table>
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Each payment writes one expense to the ledger against that person and
-        month. The same month cannot be paid twice.
+        Each payment writes one expense to the ledger against that person and month. The
+        same month cannot be paid twice.
       </p>
     </>
-  );
+  )
 }

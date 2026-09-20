@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react"
 import {
   FlaskConical,
   IdCard,
@@ -8,21 +8,27 @@ import {
   Settings,
   Users,
   Wallet,
-} from "lucide-react";
+} from "lucide-react"
 
-import type { UserRole } from "@/lib/roles";
+import type { UserRole } from "@/lib/roles"
 
 export interface NavItem {
-  label: string;
-  href: string;
-  icon: LucideIcon;
+  label: string
+  href: string
+  icon: LucideIcon
+  /**
+   * A cropped illustration in public/icons, built from the artwork in
+   * assets/icons by scripts/build-nav-icons.mjs. Items without one fall back
+   * to the Lucide glyph above.
+   */
+  image?: string
   /** Omitted means both roles. 'admin' hides the item from staff. */
-  requiresRole?: UserRole;
+  requiresRole?: UserRole
 }
 
 export interface NavSection {
-  label: string;
-  items: NavItem[];
+  label: string
+  items: NavItem[]
 }
 
 /**
@@ -33,29 +39,58 @@ export interface NavSection {
 export const navSections: NavSection[] = [
   {
     label: "Overview",
-    items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard }],
+    items: [
+      {
+        label: "Dashboard",
+        href: "/",
+        icon: LayoutDashboard,
+        image: "/icons/dashboard.svg",
+      },
+    ],
   },
   {
     label: "Clinical",
     items: [
-      { label: "Patients", href: "/patients", icon: Users },
-      { label: "Laboratory", href: "/laboratory", icon: FlaskConical },
-      { label: "Pharmacy", href: "/pharmacy", icon: Pill },
+      {
+        label: "Patients",
+        href: "/patients",
+        icon: Users,
+        image: "/icons/patients.svg",
+      },
+      {
+        label: "Laboratory",
+        href: "/laboratory",
+        icon: FlaskConical,
+        image: "/icons/laboratory.svg",
+      },
+      {
+        label: "Pharmacy",
+        href: "/pharmacy",
+        icon: Pill,
+        image: "/icons/pharmacy.svg",
+      },
     ],
   },
   {
     label: "Money",
     items: [
-      { label: "Billing", href: "/billing", icon: Receipt },
+      {
+        label: "Billing",
+        href: "/billing",
+        icon: Receipt,
+        image: "/icons/billing.svg",
+      },
       {
         label: "Expenses",
         href: "/expenses",
         icon: Wallet,
+        image: "/icons/expenses.svg",
         requiresRole: "admin",
       },
     ],
   },
   {
+    // Staff and Settings have no artwork yet, so they keep their glyphs.
     label: "Administration",
     items: [
       { label: "Staff", href: "/staff", icon: IdCard, requiresRole: "admin" },
@@ -67,7 +102,7 @@ export const navSections: NavSection[] = [
       },
     ],
   },
-];
+]
 
 export function visibleSections(role: UserRole): NavSection[] {
   return navSections
@@ -77,5 +112,5 @@ export function visibleSections(role: UserRole): NavSection[] {
         (item) => !item.requiresRole || item.requiresRole === role,
       ),
     }))
-    .filter((section) => section.items.length > 0);
+    .filter((section) => section.items.length > 0)
 }

@@ -1,22 +1,36 @@
-# Tab icons
+# Sidebar artwork
 
-Drop SVG files here and they get wired into the tabs.
+The source illustrations. `scripts/build-nav-icons.mjs` crops each one and
+writes the result to `public/icons/`, which is what the app actually serves.
 
-Name each file after the tab it belongs to:
+| File             | Sidebar item |
+| ---------------- | ------------ |
+| `dashboard.svg`  | Dashboard    |
+| `patients.svg`   | Patients     |
+| `laboratory.svg` | Laboratory   |
+| `pharmacy.svg`   | Pharmacy     |
+| `billing.svg`    | Billing      |
+| `expenses.svg`   | Expenses     |
 
-| File                  | Where it appears                  |
-| --------------------- | --------------------------------- |
-| `expenses.svg`        | Expenses page → Expenses tab      |
-| `salaries.svg`        | Expenses page → Salaries tab      |
-| `admitted.svg`        | Patients page → Admitted now tab  |
-| `all-patients.svg`    | Patients page → All patients tab  |
+Staff and Settings have no artwork yet and fall back to a Lucide glyph.
 
-These files are the source, not what ships. They get inlined as React
-components in `src/components/ui/sliding-tabs.tsx`, with every hard-coded
-`fill` and `stroke` swapped for `currentColor` — that is what lets an icon turn
-white on the selected pill and grey beside it. An `<img src="...svg">` cannot
-do that; it would stay one fixed colour and look wrong on whichever tab is
-selected.
+## Why they get cropped
 
-So they want to be single-colour line or solid icons on a square canvas
-(`viewBox="0 0 24 24"` is ideal). They render at 18px.
+Most of these are wide scene illustrations - a counter with objects arranged
+along it - on a 1210x864 canvas. Dropped whole into the sidebar's 20px box they
+letterbox to about 20x14, and every shape lands on a fraction of a pixel, so
+they read as a coloured smudge rather than an icon.
+
+So each one is cropped to its subject: the flask, the pill bottle, the chart
+card, the receipt, the patient in the bed. The artwork itself is untouched -
+only the `viewBox` changes - and the crops live in `scripts/build-nav-icons.mjs`.
+
+## Replacing one
+
+Drop the new file in here under the same name, then:
+
+    node scripts/build-nav-icons.mjs
+
+If the new art is framed differently the old crop will be wrong, so check the
+`CROPS` map in that script. Anything already square and tightly framed, like
+`expenses.svg`, needs no crop at all.

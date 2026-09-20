@@ -1,49 +1,43 @@
-"use client";
+"use client"
 
-import { useActionState, useEffect, useState } from "react";
-import { Loader2, Pencil, UserPlus } from "lucide-react";
+import { useActionState, useEffect, useState } from "react"
+import { Loader2, Pencil, UserPlus } from "lucide-react"
 
-import { Dialog } from "@/components/ui/dialog";
-import { Field, controlClass } from "@/components/ui/field";
-import { FormMessage } from "@/components/ui/form-message";
-import { useFormValues } from "@/hooks/use-form-values";
-import { saveStaff, type ActionResult } from "@/lib/actions";
-import { todayISO } from "@/lib/dates";
+import { Dialog } from "@/components/ui/dialog"
+import { Field, controlClass } from "@/components/ui/field"
+import { FormMessage } from "@/components/ui/form-message"
+import { useFormValues } from "@/hooks/use-form-values"
+import { saveStaff, type ActionResult } from "@/lib/actions"
+import { todayISO } from "@/lib/dates"
 
 const primaryButton =
-  "flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60";
+  "flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
 const outlineButton =
-  "flex h-11 items-center gap-2 rounded-lg border border-border px-3.5 text-base font-medium transition-colors hover:bg-muted";
+  "flex h-11 items-center gap-2 rounded-lg border border-border px-3.5 text-base font-medium transition-colors hover:bg-muted"
 
 export interface StaffRecord {
-  id: string;
-  fullName: string;
-  designation: string;
-  monthlySalary: number;
-  phone: string | null;
-  joinedOn: string;
-  isActive: boolean;
+  id: string
+  fullName: string
+  designation: string
+  monthlySalary: number
+  phone: string | null
+  joinedOn: string
+  isActive: boolean
 }
 
-function StaffForm({
-  staff,
-  onClose,
-}: {
-  staff?: StaffRecord;
-  onClose: () => void;
-}) {
-  const [result, dispatch, pending] = useActionState<
-    ActionResult | null,
-    FormData
-  >(saveStaff, null);
-  const { formRef, captureValues } = useFormValues(result);
+function StaffForm({ staff, onClose }: { staff?: StaffRecord; onClose: () => void }) {
+  const [result, dispatch, pending] = useActionState<ActionResult | null, FormData>(
+    saveStaff,
+    null,
+  )
+  const { formRef, captureValues } = useFormValues(result)
 
   useEffect(() => {
     if (result?.ok) {
-      const timer = setTimeout(onClose, 1600);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(onClose, 1600)
+      return () => clearTimeout(timer)
     }
-  }, [result, onClose]);
+  }, [result, onClose])
 
   return (
     <form
@@ -132,8 +126,7 @@ function StaffForm({
         />
         Still working at PMC
         <span className="text-sm text-muted-foreground">
-          — unticking keeps the record and stops them appearing in the salary
-          run
+          — unticking keeps the record and stops them appearing in the salary run
         </span>
       </label>
 
@@ -144,25 +137,19 @@ function StaffForm({
           Cancel
         </button>
         <button type="submit" disabled={pending} className={primaryButton}>
-          {pending ? (
-            <Loader2 className="size-4.5 animate-spin" aria-hidden />
-          ) : null}
+          {pending ? <Loader2 className="size-4.5 animate-spin" aria-hidden /> : null}
           {pending ? "Saving…" : staff ? "Save changes" : "Add staff member"}
         </button>
       </div>
     </form>
-  );
+  )
 }
 
 export function AddStaffButton() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={primaryButton}
-      >
+      <button type="button" onClick={() => setOpen(true)} className={primaryButton}>
         <UserPlus className="size-4.5" aria-hidden />
         Add staff member
       </button>
@@ -175,11 +162,11 @@ export function AddStaffButton() {
         <StaffForm onClose={() => setOpen(false)} />
       </Dialog>
     </>
-  );
+  )
 }
 
 export function EditStaffButton({ staff }: { staff: StaffRecord }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
   return (
     <>
       <button
@@ -199,5 +186,5 @@ export function EditStaffButton({ staff }: { staff: StaffRecord }) {
         <StaffForm staff={staff} onClose={() => setOpen(false)} />
       </Dialog>
     </>
-  );
+  )
 }
