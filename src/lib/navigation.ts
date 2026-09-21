@@ -100,12 +100,11 @@ export const navSections: NavSection[] = [
         requiresRole: "admin",
       },
       {
-        // Every login reaches this — it is where a password is changed —
-        // the Permissions tab inside it is what stays admin-only.
         label: "Settings",
         href: "/settings",
         icon: Settings,
         image: "/icons/settings.svg",
+        requiresRole: "admin",
       },
     ],
   },

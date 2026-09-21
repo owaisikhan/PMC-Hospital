@@ -25,14 +25,16 @@ export const metadata = { title: "Laboratory" }
 
 interface OrderRow {
   id: string
+  patient_id: string
+  test_id: string
   ordered_on: string
   status: LabStatus
   charge_amount: number | string
-  cost_amount: number | string
+  // null for a staff login — lab_orders_view masks it, this just carries
+  // that through the rest of the page.
+  cost_amount: number | string | null
   external_lab: string | null
   result_note: string | null
-  patients: { id: string; mrn: string; full_name: string } | null
-  lab_tests: { name: string } | null
 }
 
 const STATUS_STYLE: Record<
@@ -53,14 +55,18 @@ export default async function LaboratoryPage({
   const { show } = await searchParams
   const filter: LabFilter = isLabFilter(show) ? show : "open"
 
-  await requireProfile()
+  const profile = await requireProfile()
+  const isAdmin = profile.role === "admin"
   const supabase = await createClient()
 
+  // The masked view, not lab_orders directly - staff must not see
+  // cost_amount. Patient and test names are fetched separately below and
+  // joined in JS, rather than nested-embedded here: PostgREST resolves an
+  // embed via the foreign key metadata on the queried relation, and a view
+  // wrapping a table does not carry that over.
   let request = supabase
-    .from("lab_orders")
-    .select(
-      "id, ordered_on, status, charge_amount, cost_amount, external_lab, result_note, patients(id, mrn, full_name), lab_tests(name)"
-    )
+    .from("lab_orders_view")
+    .select("id, patient_id, test_id, ordered_on, status, charge_amount, cost_amount, external_lab, result_note")
     .order("ordered_on", { ascending: false })
     .order("created_at", { ascending: false })
 
@@ -93,6 +99,32 @@ export default async function LaboratoryPage({
     externalLab: t.external_lab,
     chargePrice: Number(t.charge_price),
   }))
+  const testNameById = new Map(tests.map((t) => [t.id, t.name]))
+
+  // Orders can reference a discharged patient or an inactive test, neither of
+  // which is in the two lists above (admitted patients only; active tests
+  // only), so names missing from those lists are fetched separately here -
+  // by exactly the ids this page's orders actually reference, not a second
+  // copy of the same broad list.
+  const missingTestIds = [...new Set(orders.map((o) => o.test_id))].filter(
+    (id) => !testNameById.has(id)
+  )
+  const orderPatientIds = [...new Set(orders.map((o) => o.patient_id))]
+
+  const [extraTestsResult, orderPatientsResult] = await Promise.all([
+    missingTestIds.length > 0
+      ? supabase.from("lab_tests").select("id, name").in("id", missingTestIds)
+      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+    orderPatientIds.length > 0
+      ? supabase.from("patients").select("id, mrn, full_name").in("id", orderPatientIds)
+      : Promise.resolve({ data: [] as { id: string; mrn: string; full_name: string }[] }),
+  ])
+  for (const t of extraTestsResult.data ?? []) testNameById.set(t.id, t.name)
+  const orderPatientById = new Map(
+    ((orderPatientsResult.data ?? []) as { id: string; mrn: string; full_name: string }[]).map(
+      (p) => [p.id, p]
+    )
+  )
 
   const patients: PatientOption[] = (
     (patientsResult.data ?? []) as unknown as {
@@ -120,7 +152,9 @@ export default async function LaboratoryPage({
         title="Laboratory"
         description={
           isExternal
-            ? "Tests sent to outside labs. What the family is charged, and what the lab costs PMC."
+            ? isAdmin
+              ? "Tests sent to outside labs. What the family is charged, and what the lab costs PMC."
+              : "Tests sent to outside labs."
             : "Tests run in PMC's own laboratory."
         }
         actions={
@@ -183,15 +217,20 @@ export default async function LaboratoryPage({
               {orders.length} {orders.length === 1 ? "test" : "tests"} · charged{" "}
               <span className="font-medium whitespace-nowrap text-foreground tabular-nums">
                 {formatPKR(charged)}
-              </span>{" "}
-              · cost{" "}
-              <span className="font-medium whitespace-nowrap text-foreground tabular-nums">
-                {formatPKR(cost)}
-              </span>{" "}
-              · margin{" "}
-              <span className="font-semibold whitespace-nowrap text-success tabular-nums">
-                {formatPKR(charged - cost)}
               </span>
+              {isAdmin ? (
+                <>
+                  {" "}
+                  · cost{" "}
+                  <span className="font-medium whitespace-nowrap text-foreground tabular-nums">
+                    {formatPKR(cost)}
+                  </span>{" "}
+                  · margin{" "}
+                  <span className="font-semibold whitespace-nowrap text-success tabular-nums">
+                    {formatPKR(charged - cost)}
+                  </span>
+                </>
+              ) : null}
             </p>
 
             {/* min-w-0: a flex child defaults to min-width:auto, so without it the
@@ -219,7 +258,9 @@ export default async function LaboratoryPage({
                     <th scope="col" className="px-4 py-3 font-medium">Lab</th>
                     <th scope="col" className="px-4 py-3 font-medium">Status</th>
                     <th scope="col" className="px-4 py-3 text-right font-medium">Charge</th>
-                    <th scope="col" className="px-4 py-3 text-right font-medium">Cost</th>
+                    {isAdmin ? (
+                      <th scope="col" className="px-4 py-3 text-right font-medium">Cost</th>
+                    ) : null}
                     <th scope="col" className="px-4 py-3 font-medium">
                       <span className="sr-only">Actions</span>
                     </th>
@@ -229,7 +270,8 @@ export default async function LaboratoryPage({
                   {orders.map((order, index) => {
                     const style = STATUS_STYLE[order.status]
                     const StatusIcon = style.icon
-                    const patient = order.patients
+                    const patient = orderPatientById.get(order.patient_id) ?? null
+                    const testName = testNameById.get(order.test_id) ?? null
 
                     return (
                       <tr key={order.id} className="border-b border-border/60 last:border-b-0">
@@ -256,7 +298,7 @@ export default async function LaboratoryPage({
                         </td>
 
                         <td className="px-4 py-3">
-                          <span>{order.lab_tests?.name ?? "—"}</span>
+                          <span>{testName ?? "—"}</span>
                           {order.result_note ? (
                             <span className="block text-sm text-muted-foreground">
                               {order.result_note}
@@ -285,14 +327,16 @@ export default async function LaboratoryPage({
                           {formatPKR(Number(order.charge_amount))}
                         </td>
 
-                        <td className="px-4 py-3 text-right whitespace-nowrap text-muted-foreground tabular-nums">
-                          {formatPKR(Number(order.cost_amount))}
-                        </td>
+                        {isAdmin ? (
+                          <td className="px-4 py-3 text-right whitespace-nowrap text-muted-foreground tabular-nums">
+                            {formatPKR(Number(order.cost_amount))}
+                          </td>
+                        ) : null}
 
                         <td className="px-4 py-3">
                           <UpdateLabOrderButton
                             orderId={order.id}
-                            testName={order.lab_tests?.name ?? "Test"}
+                            testName={testName ?? "Test"}
                             patientName={patient?.full_name ?? "this patient"}
                             status={order.status}
                             resultNote={order.result_note}

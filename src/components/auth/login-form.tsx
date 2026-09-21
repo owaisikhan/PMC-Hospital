@@ -1,23 +1,22 @@
 "use client"
 
-import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { staffEmailFor } from "@/lib/auth"
 import { describeAuthError } from "@/lib/auth-errors"
 import { createClient } from "@/lib/supabase/client"
 
 export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [email, setEmail] = useState("")
+  const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const justCreated = searchParams.get("created") === "1"
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -26,6 +25,11 @@ export function LoginForm() {
 
     try {
       const supabase = createClient()
+      // An administrator signs in with their email; a staff login has no
+      // real email at all, only a username - anything without an "@" is
+      // assumed to be one and turned into the synthetic address it is
+      // actually stored under.
+      const email = identifier.includes("@") ? identifier : staffEmailFor(identifier)
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -52,21 +56,14 @@ export function LoginForm() {
       onSubmit={handleSubmit}
       className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-xs"
     >
-      {justCreated ? (
-        <p className="rounded-lg bg-accent px-3 py-2 text-sm text-accent-foreground">
-          Account created. Sign in to continue.
-        </p>
-      ) : null}
-
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium">
-          Email
+        <label htmlFor="identifier" className="text-sm font-medium">
+          Email or username
         </label>
         <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          id="identifier"
+          value={identifier}
+          onChange={(event) => setIdentifier(event.target.value)}
           autoComplete="username"
           required
           className="h-9"
@@ -99,12 +96,8 @@ export function LoginForm() {
         {isSubmitting ? "Signing in…" : "Sign in"}
       </Button>
 
-      <p className="text-center text-sm text-muted-foreground">
-        No account yet?{" "}
-        <Link href="/signup" className="text-primary underline-offset-4 hover:underline">
-          Create one
-        </Link>
-      </p>
+      {/* No self-signup: every login, admin or staff, is created by an
+          administrator from Settings. */}
     </form>
   )
 }

@@ -27,36 +27,53 @@ interface ItemRow {
   strength: string | null
   unit: string
   reorder_level: number
-  pharmacy_batches: BatchRow[]
 }
 
 export default async function PharmacyPage() {
-  await requireProfile()
+  const profile = await requireProfile()
+  const isAdmin = profile.role === "admin"
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  const { data: itemsData, error } = await supabase
     .from("pharmacy_items")
-    .select(
-      "id, sku, name, form, strength, unit, reorder_level, pharmacy_batches(id, batch_no, expiry_date, qty_remaining, cost_price, sale_price)"
-    )
+    .select("id, sku, name, form, strength, unit, reorder_level")
     .eq("is_active", true)
     .order("name")
 
-  const items = (data ?? []) as unknown as ItemRow[]
+  const items = (itemsData ?? []) as ItemRow[]
+
+  // A separate query against the masked view, not a nested embed: staff must
+  // not see cost_price, and a masking view has to be queried directly - the
+  // FK metadata PostgREST needs to embed it under pharmacy_items does not
+  // carry over from the base table it wraps.
+  const itemIds = items.map((item) => item.id)
+  const { data: batchesData } =
+    itemIds.length > 0
+      ? await supabase
+          .from("pharmacy_batches_view")
+          .select("id, item_id, batch_no, expiry_date, qty_remaining, cost_price, sale_price")
+          .in("item_id", itemIds)
+      : { data: [] as BatchRow[] & { item_id: string }[] }
+
+  const batchesByItem = new Map<string, (BatchRow & { item_id: string })[]>()
+  for (const batch of (batchesData ?? []) as (BatchRow & { item_id: string })[]) {
+    const list = batchesByItem.get(batch.item_id) ?? []
+    list.push(batch)
+    batchesByItem.set(batch.item_id, list)
+  }
+
   const today = todayISO()
   const soon = daysFromNowISO(90)
 
   const rows = items.map((item) => {
-    const inStock = item.pharmacy_batches
+    const batches = batchesByItem.get(item.id) ?? []
+    const inStock = batches
       .filter((batch) => batch.qty_remaining > 0)
       // Earliest expiry first: that is the batch dispensed next, so its prices
       // and date are the ones that describe this medicine right now.
       .sort((a, b) => a.expiry_date.localeCompare(b.expiry_date))
 
-    const stock = item.pharmacy_batches.reduce(
-      (sum, batch) => sum + batch.qty_remaining,
-      0
-    )
+    const stock = batches.reduce((sum, batch) => sum + batch.qty_remaining, 0)
     const next = inStock[0] ?? null
 
     return {
@@ -67,7 +84,10 @@ export default async function PharmacyPage() {
       unit: item.unit,
       stock,
       batchCount: inStock.length,
-      costPrice: next ? Number(next.cost_price) : null,
+      // null for a staff login - the view masks it, this just carries that through.
+      costPrice: next?.cost_price === null || next?.cost_price === undefined
+        ? null
+        : Number(next.cost_price),
       salePrice: next ? Number(next.sale_price) : null,
       expiry: next ? next.expiry_date : null,
     }
@@ -79,7 +99,11 @@ export default async function PharmacyPage() {
     <>
       <PageHeader
         title="Pharmacy"
-        description="Medicines held in stock, with what they cost and what they sell for."
+        description={
+          isAdmin
+            ? "Medicines held in stock, with what they cost and what they sell for."
+            : "Medicines held in stock and what they sell for."
+        }
       />
 
       <div className="flex flex-col gap-4 px-4 py-6 sm:px-6">
@@ -131,9 +155,11 @@ export default async function PharmacyPage() {
                     <th scope="col" className="px-4 py-3 font-medium">SKU</th>
                     <th scope="col" className="px-4 py-3 font-medium">Medicine</th>
                     <th scope="col" className="px-4 py-3 font-medium">Stock</th>
-                    <th scope="col" className="px-4 py-3 text-right font-medium">
-                      Purchase price
-                    </th>
+                    {isAdmin ? (
+                      <th scope="col" className="px-4 py-3 text-right font-medium">
+                        Purchase price
+                      </th>
+                    ) : null}
                     <th scope="col" className="px-4 py-3 text-right font-medium">
                       Sale price
                     </th>
@@ -193,13 +219,15 @@ export default async function PharmacyPage() {
                           ) : null}
                         </td>
 
-                        <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
-                          {row.costPrice === null ? (
-                            <span className="text-muted-foreground">—</span>
-                          ) : (
-                            formatPKR(row.costPrice)
-                          )}
-                        </td>
+                        {isAdmin ? (
+                          <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
+                            {row.costPrice === null ? (
+                              <span className="text-muted-foreground">—</span>
+                            ) : (
+                              formatPKR(row.costPrice)
+                            )}
+                          </td>
+                        ) : null}
 
                         <td className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums">
                           {row.salePrice === null ? (
@@ -244,7 +272,7 @@ export default async function PharmacyPage() {
             </div>
 
             <p className="text-sm text-muted-foreground">
-              Stock is the total across every batch. Purchase price, sale price
+              Stock is the total across every batch. {isAdmin ? "Purchase price, sale price" : "Sale price"}{" "}
               and expiry come from the batch that expires first, which is the one
               dispensed next.
             </p>

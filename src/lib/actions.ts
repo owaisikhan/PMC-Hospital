@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache"
 
+import { staffEmailFor, USERNAME_PATTERN } from "@/lib/auth"
 import { todayISO } from "@/lib/dates"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { requireProfile } from "@/lib/supabase/session"
 
@@ -877,4 +879,127 @@ export async function setLogin(
 
   revalidatePath("/settings")
   return { ok: true, message: "Login updated." }
+}
+
+/**
+ * Every login is created by an administrator, never by the person signing
+ * up - there is no public signup page. An admin login keeps a real email; a
+ * staff login gets a username, which is a synthetic, unmailable email under
+ * the hood so the rest of Supabase Auth needs no changes to support it.
+ *
+ * Requires the service role key: creating an account with a password the
+ * admin chose, active immediately, with no confirmation email to click, is
+ * exactly what an ordinary signed-in session cannot do to another account.
+ */
+export async function createLogin(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") return fail("Only an administrator can create a login.")
+
+  const loginType = text(form, "login_type")
+  const fullName = text(form, "full_name")
+  const identifier = text(form, "identifier")
+  const password = text(form, "password")
+
+  if (!["admin", "staff"].includes(loginType)) return fail("Choose admin or staff.")
+  if (!fullName) return fail("Enter their name.")
+  if (password.length < 8) return fail("The password must be at least 8 characters.")
+
+  let email: string
+  if (loginType === "staff") {
+    if (!USERNAME_PATTERN.test(identifier)) {
+      return fail(
+        "Usernames are 3-32 characters: letters, numbers, dots, dashes and underscores only."
+      )
+    }
+    email = staffEmailFor(identifier)
+  } else {
+    if (!identifier.includes("@") || !identifier.includes(".")) {
+      return fail("Enter a valid email address.")
+    }
+    email = identifier
+  }
+
+  let admin: ReturnType<typeof createAdminClient>
+  try {
+    admin = createAdminClient()
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Could not create the login.")
+  }
+
+  const { data, error: createError } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+  })
+
+  if (createError) {
+    const m = createError.message.toLowerCase()
+    if (m.includes("already registered") || m.includes("already exists")) {
+      return fail(
+        loginType === "staff"
+          ? "That username is already taken."
+          : "That email is already in use."
+      )
+    }
+    return fail(createError.message)
+  }
+
+  // handle_new_user has already inserted a profile row (staff, inactive, as
+  // it does for every new auth.users row) - this is the one place that
+  // outcome is overridden, to what was actually asked for on this form.
+  const supabase = await createClient()
+  const { error: updateError } = await supabase
+    .from("profiles")
+    .update({ role: loginType, is_active: true, full_name: fullName })
+    .eq("id", data.user.id)
+
+  if (updateError) {
+    return fail(`Login created, but could not be finished: ${describeDbError(updateError.message)}`)
+  }
+
+  revalidatePath("/settings")
+  return {
+    ok: true,
+    message:
+      loginType === "staff"
+        ? `Login ready. Give them the username "${identifier}" and the password.`
+        : "Login ready.",
+  }
+}
+
+/**
+ * The admin sets a new password directly - there is no "forgot password"
+ * flow here, because a staff login has no real email to send a reset link
+ * to, and an admin resetting their own password already goes through the
+ * ordinary change-password form on Personal info instead of this one.
+ */
+export async function resetLoginPassword(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") return fail("Only an administrator can reset a password.")
+
+  const userId = text(form, "user_id")
+  const password = text(form, "password")
+
+  if (!userId) return fail("Missing the login.")
+  if (userId === profile.id) return fail("Change your own password from Personal info.")
+  if (password.length < 8) return fail("The new password must be at least 8 characters.")
+
+  let admin: ReturnType<typeof createAdminClient>
+  try {
+    admin = createAdminClient()
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Could not reset the password.")
+  }
+
+  const { error } = await admin.auth.admin.updateUserById(userId, { password })
+  if (error) return fail(error.message)
+
+  return { ok: true, message: "Password reset." }
 }
