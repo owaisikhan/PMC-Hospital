@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "motion/react"
 import {
   Banknote,
   BedDouble,
+  FlaskConical,
   ShieldCheck,
   User,
   Users,
@@ -31,6 +32,7 @@ const TAB_ICONS = {
   users: Users,
   user: User,
   shield: ShieldCheck,
+  flask: FlaskConical,
 } satisfies Record<string, LucideIcon>
 
 export type TabIconName = keyof typeof TAB_ICONS

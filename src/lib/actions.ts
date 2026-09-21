@@ -49,6 +49,15 @@ function describeDbError(message: string): string {
   if (m.includes("last_admin")) {
     return "At least one administrator has to stay active — promote or reactivate someone else first."
   }
+  if (m.includes("pharmacy_batches_remaining_lte_received")) {
+    return "That is more than actually arrived in this batch."
+  }
+  if (m.includes("labs_name_key") || (m.includes("duplicate key") && m.includes("labs"))) {
+    return "A lab with that name already exists."
+  }
+  if (m.includes("lab_tests_name_key")) {
+    return "A test with that name already exists."
+  }
   return message
 }
 
@@ -441,15 +450,17 @@ export async function recordLabOrder(
   if (!testId) return fail("Choose the test.")
   if (orderedOn > todayISO()) return fail("The order date cannot be in the future.")
 
-  // The prices are copied onto the order, so changing a test's price later
-  // never rewrites what an earlier family was charged.
+  // The prices — and the lab's name at the time — are copied onto the
+  // order, so changing a test's price or lab later never rewrites what an
+  // earlier family was charged or where their sample actually went.
   const { data: test, error: testError } = await supabase
     .from("lab_tests")
-    .select("name, charge_price, cost_price, external_lab")
+    .select("name, charge_price, cost_price, labs(name)")
     .eq("id", testId)
     .single()
 
   if (testError || !test) return fail("That test no longer exists.")
+  const labName = (test.labs as unknown as { name: string } | null)?.name ?? null
 
   // If the patient is currently admitted, attach the order to that stay so it
   // shows on their record.
@@ -470,7 +481,7 @@ export async function recordLabOrder(
       status: "ordered",
       charge_amount: test.charge_price,
       cost_amount: test.cost_price,
-      external_lab: test.external_lab,
+      external_lab: labName,
       created_by: profile.id,
     })
     .select("id")
@@ -536,6 +547,211 @@ export async function updateLabOrder(
 
   revalidatePath("/laboratory")
   return { ok: true, message: "Test updated." }
+}
+
+/** Admin only — this is where charge_price and cost_price are set. */
+export async function saveLabTest(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") return fail("Only an administrator can manage tests.")
+
+  const supabase = await createClient()
+  const testId = text(form, "test_id")
+  const name = text(form, "name")
+  const labId = text(form, "lab_id")
+  const chargePrice = Number(text(form, "charge_price"))
+  const costPrice = Number(text(form, "cost_price"))
+  const isActive = form.get("is_active") !== null
+
+  if (!name) return fail("Enter the test's name.")
+  if (!labId) return fail("Choose which lab runs this test.")
+  if (!Number.isFinite(chargePrice) || chargePrice <= 0) {
+    return fail("Enter what the patient is charged. It must be more than zero.")
+  }
+  if (!Number.isFinite(costPrice) || costPrice < 0) {
+    return fail("Enter what the lab bills PMC. It cannot be negative.")
+  }
+
+  const row = {
+    name,
+    lab_id: labId,
+    charge_price: chargePrice,
+    cost_price: costPrice,
+    is_active: isActive,
+  }
+
+  const { error } = testId
+    ? await supabase.from("lab_tests").update(row).eq("id", testId)
+    : await supabase.from("lab_tests").insert(row)
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/laboratory")
+  return { ok: true, message: testId ? "Test updated." : `${name} added.` }
+}
+
+/** Admin only. A lab is never deleted, only deactivated — every test and
+ * past order that names it has to stay readable. */
+export async function saveLab(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") return fail("Only an administrator can manage labs.")
+
+  const supabase = await createClient()
+  const labId = text(form, "lab_id")
+  const name = text(form, "name")
+  const isActive = form.get("is_active") !== null
+
+  if (!name) return fail("Enter the lab's name.")
+
+  const row = { name, is_active: isActive }
+
+  const { error } = labId
+    ? await supabase.from("labs").update(row).eq("id", labId)
+    : await supabase.from("labs").insert(row)
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/laboratory")
+  return { ok: true, message: labId ? "Lab updated." : `${name} added.` }
+}
+
+// ---------------------------------------------------------------------------
+// Pharmacy (admin only — cost prices and stock counts are money)
+// ---------------------------------------------------------------------------
+
+/**
+ * Receives a delivery: a new batch, and — when the medicine has never been
+ * stocked before — the item itself in the same call. Never touches an
+ * existing batch; a second delivery of something already on the shelf is a
+ * new batch, even same-day, so each one's own cost price stays attached to
+ * the stock it actually paid for.
+ */
+export async function receiveStock(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") return fail("Only an administrator can receive stock.")
+
+  const supabase = await createClient()
+  const itemId = text(form, "item_id")
+  const newItemName = text(form, "new_item_name")
+  const form_ = text(form, "form")
+  const strength = text(form, "strength")
+  const unit = text(form, "unit") || "unit"
+  const reorderLevel = Number(text(form, "reorder_level") || "0")
+
+  const batchNo = text(form, "batch_no")
+  const qtyReceived = Number(text(form, "qty_received"))
+  const costPrice = Number(text(form, "cost_price"))
+  const salePrice = Number(text(form, "sale_price"))
+  const expiryDate = text(form, "expiry_date")
+  const receivedOn = text(form, "received_on") || todayISO()
+
+  if (!itemId && !newItemName) return fail("Choose a medicine, or enter a new one.")
+  if (!batchNo) return fail("Enter the batch number.")
+  if (!Number.isFinite(qtyReceived) || qtyReceived <= 0) {
+    return fail("Enter how many units arrived. It must be more than zero.")
+  }
+  if (!Number.isFinite(costPrice) || costPrice < 0) {
+    return fail("Enter what this batch cost. It cannot be negative.")
+  }
+  if (!Number.isFinite(salePrice) || salePrice < 0) {
+    return fail("Enter the sale price. It cannot be negative.")
+  }
+  if (!expiryDate) return fail("Enter the expiry date.")
+  if (expiryDate <= receivedOn) return fail("The expiry date has to be after today.")
+
+  let resolvedItemId = itemId
+  if (!resolvedItemId) {
+    const { data: newItem, error: itemError } = await supabase
+      .from("pharmacy_items")
+      .insert({
+        name: newItemName,
+        form: form_ || null,
+        strength: strength || null,
+        unit,
+        reorder_level: Number.isFinite(reorderLevel) ? reorderLevel : 0,
+      })
+      .select("id")
+      .single()
+    if (itemError) return fail(describeDbError(itemError.message))
+    resolvedItemId = newItem.id
+  }
+
+  const { error } = await supabase.from("pharmacy_batches").insert({
+    item_id: resolvedItemId,
+    batch_no: batchNo,
+    qty_received: qtyReceived,
+    qty_remaining: qtyReceived,
+    cost_price: costPrice,
+    sale_price: salePrice,
+    expiry_date: expiryDate,
+    received_on: receivedOn,
+    created_by: profile.id,
+  })
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/pharmacy")
+  return { ok: true, message: "Stock received." }
+}
+
+/**
+ * Corrects a batch already on the shelf — a mistyped price, an expiry date
+ * entered wrong, a recount. This is the one exception to "never edit a
+ * batch" above: it fixes a batch's own record of itself rather than
+ * layering a new delivery on top, for a mistake made entering it, not stock
+ * that actually moved (a sale is what changes qty_remaining day to day).
+ */
+export async function updateBatch(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") return fail("Only an administrator can edit stock.")
+
+  const supabase = await createClient()
+  const batchId = text(form, "batch_id")
+  const batchNo = text(form, "batch_no")
+  const qtyRemaining = Number(text(form, "qty_remaining"))
+  const costPrice = Number(text(form, "cost_price"))
+  const salePrice = Number(text(form, "sale_price"))
+  const expiryDate = text(form, "expiry_date")
+
+  if (!batchId) return fail("Missing the batch.")
+  if (!batchNo) return fail("Enter the batch number.")
+  if (!Number.isFinite(qtyRemaining) || qtyRemaining < 0) {
+    return fail("Enter how many units remain. It cannot be negative.")
+  }
+  if (!Number.isFinite(costPrice) || costPrice < 0) {
+    return fail("Enter the cost price. It cannot be negative.")
+  }
+  if (!Number.isFinite(salePrice) || salePrice < 0) {
+    return fail("Enter the sale price. It cannot be negative.")
+  }
+  if (!expiryDate) return fail("Enter the expiry date.")
+
+  const { error } = await supabase
+    .from("pharmacy_batches")
+    .update({
+      batch_no: batchNo,
+      qty_remaining: qtyRemaining,
+      cost_price: costPrice,
+      sale_price: salePrice,
+      expiry_date: expiryDate,
+    })
+    .eq("id", batchId)
+
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/pharmacy")
+  return { ok: true, message: "Stock updated." }
 }
 
 // ---------------------------------------------------------------------------

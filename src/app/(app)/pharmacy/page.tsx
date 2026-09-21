@@ -1,6 +1,7 @@
 import { AlertTriangle, CircleCheck, CircleX, Pill } from "lucide-react"
 
 import { PageHeader } from "@/components/layout/page-header"
+import { EditBatchButton, ReceiveStockButton } from "@/components/pharmacy/stock-dialogs"
 import { Badge } from "@/components/ui/badge"
 import { daysFromNowISO, todayISO } from "@/lib/dates"
 import { formatPKR } from "@/lib/format"
@@ -90,10 +91,26 @@ export default async function PharmacyPage() {
         : Number(next.cost_price),
       salePrice: next ? Number(next.sale_price) : null,
       expiry: next ? next.expiry_date : null,
+      // The row the Edit dialog changes - the batch actually shown here.
+      editableBatch: next
+        ? {
+            id: next.id,
+            batchNo: next.batch_no,
+            qtyRemaining: next.qty_remaining,
+            costPrice: Number(next.cost_price ?? 0),
+            salePrice: Number(next.sale_price),
+            expiryDate: next.expiry_date,
+          }
+        : null,
     }
   })
 
   const outOfStock = rows.filter((row) => row.stock === 0).length
+  const itemOptions = items.map((item) => ({
+    id: item.id,
+    name: item.name,
+    detail: [item.strength, item.form].filter((part) => part && part !== "-").join(" · "),
+  }))
 
   return (
     <>
@@ -104,6 +121,7 @@ export default async function PharmacyPage() {
             ? "Medicines held in stock, with what they cost and what they sell for."
             : "Medicines held in stock and what they sell for."
         }
+        actions={isAdmin ? <ReceiveStockButton items={itemOptions} /> : undefined}
       />
 
       <div className="flex flex-col gap-4 px-4 py-6 sm:px-6">
@@ -164,6 +182,11 @@ export default async function PharmacyPage() {
                       Sale price
                     </th>
                     <th scope="col" className="px-4 py-3 font-medium">Expiry date</th>
+                    {isAdmin ? (
+                      <th scope="col" className="px-4 py-3 font-medium">
+                        <span className="sr-only">Actions</span>
+                      </th>
+                    ) : null}
                   </tr>
                 </thead>
                 <tbody>
@@ -264,6 +287,14 @@ export default async function PharmacyPage() {
                             </span>
                           )}
                         </td>
+
+                        {isAdmin ? (
+                          <td className="px-4 py-3">
+                            {row.editableBatch ? (
+                              <EditBatchButton medicineName={row.name} batch={row.editableBatch} />
+                            ) : null}
+                          </td>
+                        ) : null}
                       </tr>
                     )
                   })}
