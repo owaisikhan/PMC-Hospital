@@ -55,7 +55,14 @@ export function UrlSearch({
         JSON.parse(carried) as Record<string, string>
       )
       if (value.trim()) next.set("q", value.trim())
-      router.replace(`${basePath}?${next.toString()}`, { scroll: false })
+      const queryString = next.toString()
+      const target = queryString ? `${basePath}?${queryString}` : basePath
+      // router.replace() silently does nothing when the target has no search
+      // params at all and the current URL does - clearing the box then left
+      // the stale q sitting in the address bar and in the list below. Setting
+      // the URL directly and asking the router to refetch sidesteps that.
+      window.history.replaceState(null, "", target)
+      router.refresh()
     }, 300)
     return () => clearTimeout(timer)
     // Deliberately no `page`: a new search belongs on the first page of its

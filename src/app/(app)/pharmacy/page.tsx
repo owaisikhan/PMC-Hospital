@@ -149,9 +149,12 @@ export default async function PharmacyPage({
   }))
 
   // What each control hands off to the other, so searching and sorting
-  // compose in the URL instead of one clobbering the other.
-  const sortCarry: Record<string, string> = q ? { q } : {}
-  const searchCarry: Record<string, string> = sort ? { sort, dir } : {}
+  // compose in the URL instead of one clobbering the other. The sort
+  // headers carry the current search along; the search box carries the
+  // current sort along - never its own param, or clearing the box could
+  // not remove a q that the carry itself kept re-adding.
+  const carryForSortHeaders: Record<string, string> = q ? { q } : {}
+  const carryForSearchBox: Record<string, string> = sort ? { sort, dir } : {}
 
   return (
     <>
@@ -180,7 +183,7 @@ export default async function PharmacyPage({
           </div>
         ) : (
           <>
-            <PharmacySearch initialQuery={q} carry={sortCarry} />
+            <PharmacySearch initialQuery={q} carry={carryForSearchBox} />
 
             <p className="text-base text-muted-foreground">
               {sortedRows.length} {sortedRows.length === 1 ? "medicine" : "medicines"}
@@ -230,7 +233,7 @@ export default async function PharmacyPage({
                       active={sort === "stock"}
                       direction={dir}
                       basePath="/pharmacy"
-                      carry={searchCarry}
+                      carry={carryForSortHeaders}
                     />
                     {isAdmin ? (
                       <SortableHeader
@@ -239,7 +242,7 @@ export default async function PharmacyPage({
                         active={sort === "costPrice"}
                         direction={dir}
                         basePath="/pharmacy"
-                        carry={searchCarry}
+                        carry={carryForSortHeaders}
                         align="right"
                       />
                     ) : null}
@@ -249,7 +252,7 @@ export default async function PharmacyPage({
                       active={sort === "salePrice"}
                       direction={dir}
                       basePath="/pharmacy"
-                      carry={searchCarry}
+                      carry={carryForSortHeaders}
                       align="right"
                     />
                     <SortableHeader
@@ -258,7 +261,7 @@ export default async function PharmacyPage({
                       active={sort === "expiry"}
                       direction={dir}
                       basePath="/pharmacy"
-                      carry={searchCarry}
+                      carry={carryForSortHeaders}
                     />
                     {isAdmin ? (
                       <th scope="col" className="px-4 py-3 font-medium">
