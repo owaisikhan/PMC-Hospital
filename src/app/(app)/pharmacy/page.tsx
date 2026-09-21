@@ -1,8 +1,10 @@
 import { AlertTriangle, CircleCheck, CircleX, Pill } from "lucide-react"
 
 import { PageHeader } from "@/components/layout/page-header"
+import { PharmacySearch } from "@/components/pharmacy/pharmacy-search"
 import { EditBatchButton, ReceiveStockButton } from "@/components/pharmacy/stock-dialogs"
 import { Badge } from "@/components/ui/badge"
+import { SortableHeader } from "@/components/ui/sortable-header"
 import { daysFromNowISO, todayISO } from "@/lib/dates"
 import { formatPKR } from "@/lib/format"
 import { createClient } from "@/lib/supabase/server"
@@ -30,7 +32,23 @@ interface ItemRow {
   reorder_level: number
 }
 
-export default async function PharmacyPage() {
+const SORT_KEYS = ["stock", "costPrice", "salePrice", "expiry"] as const
+type SortKey = (typeof SORT_KEYS)[number]
+
+function isSortKey(value: string | undefined): value is SortKey {
+  return SORT_KEYS.includes(value as SortKey)
+}
+
+export default async function PharmacyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; sort?: string; dir?: string }>
+}) {
+  const params = await searchParams
+  const q = (params.q ?? "").trim()
+  const sort = isSortKey(params.sort) ? params.sort : null
+  const dir = params.dir === "desc" ? "desc" : "asc"
+
   const profile = await requireProfile()
   const isAdmin = profile.role === "admin"
   const supabase = await createClient()
@@ -105,12 +123,35 @@ export default async function PharmacyPage() {
     }
   })
 
-  const outOfStock = rows.filter((row) => row.stock === 0).length
+  const filteredRows = q
+    ? rows.filter((row) => row.name.toLowerCase().includes(q.toLowerCase()))
+    : rows
+
+  const sortedRows = sort
+    ? [...filteredRows].sort((a, b) => {
+        const av = a[sort]
+        const bv = b[sort]
+        // A missing value (no batch, or a masked cost price) always sorts
+        // last, in either direction, rather than jumping to the top on desc.
+        if (av === null && bv === null) return 0
+        if (av === null) return 1
+        if (bv === null) return -1
+        const comparison = typeof av === "number" ? av - (bv as number) : String(av).localeCompare(String(bv))
+        return dir === "desc" ? -comparison : comparison
+      })
+    : filteredRows
+
+  const outOfStock = sortedRows.filter((row) => row.stock === 0).length
   const itemOptions = items.map((item) => ({
     id: item.id,
     name: item.name,
     detail: [item.strength, item.form].filter((part) => part && part !== "-").join(" · "),
   }))
+
+  // What each control hands off to the other, so searching and sorting
+  // compose in the URL instead of one clobbering the other.
+  const sortCarry: Record<string, string> = q ? { q } : {}
+  const searchCarry: Record<string, string> = sort ? { sort, dir } : {}
 
   return (
     <>
@@ -139,8 +180,11 @@ export default async function PharmacyPage() {
           </div>
         ) : (
           <>
+            <PharmacySearch initialQuery={q} carry={sortCarry} />
+
             <p className="text-base text-muted-foreground">
-              {rows.length} {rows.length === 1 ? "medicine" : "medicines"}
+              {sortedRows.length} {sortedRows.length === 1 ? "medicine" : "medicines"}
+              {q ? ` matching "${q}"` : ""}
               {outOfStock > 0 ? (
                 <>
                   {" · "}
@@ -151,17 +195,25 @@ export default async function PharmacyPage() {
               ) : null}
             </p>
 
-            {/* min-w-0: a flex child defaults to min-width:auto, so without it the
-                wrapper grows to the table's width and scrolls the whole page
-                sideways instead of scrolling inside its own card.
+            {sortedRows.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-10 text-center">
+                <p className="text-base font-medium">No medicines match &quot;{q}&quot;.</p>
+                <p className="text-base text-muted-foreground">
+                  Check the spelling, or clear the search to see everything.
+                </p>
+              </div>
+            ) : (
+            /* min-w-0: a flex child defaults to min-width:auto, so without it the
+               wrapper grows to the table's width and scrolls the whole page
+               sideways instead of scrolling inside its own card.
 
-                relative: sr-only is position:absolute, and with no positioned
-                ancestor its containing block is the document rather than this
-                wrapper. A visually hidden label inside a table wider than the
-                screen then sits outside the scroller and drags the page's
-                scrollable width out with it - 500px of blank space the page
-                could be scrolled into. Making this the containing block keeps
-                it clipped here. */}
+               relative: sr-only is position:absolute, and with no positioned
+               ancestor its containing block is the document rather than this
+               wrapper. A visually hidden label inside a table wider than the
+               screen then sits outside the scroller and drags the page's
+               scrollable width out with it - 500px of blank space the page
+               could be scrolled into. Making this the containing block keeps
+               it clipped here. */
             <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
               <table className="w-full min-w-[52rem] border-collapse text-base">
                 <caption className="sr-only">
@@ -172,16 +224,42 @@ export default async function PharmacyPage() {
                     <th scope="col" className="w-14 px-4 py-3 font-medium">S#</th>
                     <th scope="col" className="px-4 py-3 font-medium">SKU</th>
                     <th scope="col" className="px-4 py-3 font-medium">Medicine</th>
-                    <th scope="col" className="px-4 py-3 font-medium">Stock</th>
+                    <SortableHeader
+                      label="Stock"
+                      sortKey="stock"
+                      active={sort === "stock"}
+                      direction={dir}
+                      basePath="/pharmacy"
+                      carry={searchCarry}
+                    />
                     {isAdmin ? (
-                      <th scope="col" className="px-4 py-3 text-right font-medium">
-                        Purchase price
-                      </th>
+                      <SortableHeader
+                        label="Purchase price"
+                        sortKey="costPrice"
+                        active={sort === "costPrice"}
+                        direction={dir}
+                        basePath="/pharmacy"
+                        carry={searchCarry}
+                        align="right"
+                      />
                     ) : null}
-                    <th scope="col" className="px-4 py-3 text-right font-medium">
-                      Sale price
-                    </th>
-                    <th scope="col" className="px-4 py-3 font-medium">Expiry date</th>
+                    <SortableHeader
+                      label="Sale price"
+                      sortKey="salePrice"
+                      active={sort === "salePrice"}
+                      direction={dir}
+                      basePath="/pharmacy"
+                      carry={searchCarry}
+                      align="right"
+                    />
+                    <SortableHeader
+                      label="Expiry date"
+                      sortKey="expiry"
+                      active={sort === "expiry"}
+                      direction={dir}
+                      basePath="/pharmacy"
+                      carry={searchCarry}
+                    />
                     {isAdmin ? (
                       <th scope="col" className="px-4 py-3 font-medium">
                         <span className="sr-only">Actions</span>
@@ -190,7 +268,7 @@ export default async function PharmacyPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row, index) => {
+                  {sortedRows.map((row, index) => {
                     const expired = row.expiry !== null && row.expiry < today
                     const expiringSoon =
                       row.expiry !== null && !expired && row.expiry <= soon
@@ -301,6 +379,7 @@ export default async function PharmacyPage() {
                 </tbody>
               </table>
             </div>
+            )}
 
             <p className="text-sm text-muted-foreground">
               Stock is the total across every batch. {isAdmin ? "Purchase price, sale price" : "Sale price"}{" "}
