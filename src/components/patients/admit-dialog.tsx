@@ -95,7 +95,7 @@ export function AdmitDialog({
       >
         <form ref={formRef} action={action} onSubmit={captureValues} className="flex flex-col gap-4">
           <Field
-            label="Find the patient"
+            label="Patient Name"
             htmlFor="patient_search"
             required
             hint="Type a name or medical record number."
