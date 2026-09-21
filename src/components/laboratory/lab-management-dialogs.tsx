@@ -63,16 +63,18 @@ function LabForm({ lab, onClose }: { lab?: LabRecord; onClose: () => void }) {
         />
       </Field>
 
-      <label className="flex items-center gap-2.5 text-base">
+      <label className="flex items-start gap-2.5 text-base">
         <input
           type="checkbox"
           name="is_active"
           defaultChecked={lab?.isActive ?? true}
-          className="size-5 rounded border-border"
+          className="mt-0.5 size-5 shrink-0 rounded border-border"
         />
-        Still sending samples here
-        <span className="text-sm text-muted-foreground">
-          — unticking hides it from the test dropdown without losing past orders
+        <span>
+          Still sending samples here
+          <span className="block text-sm text-muted-foreground">
+            Unticking hides it from the test dropdown without losing past orders.
+          </span>
         </span>
       </label>
 
@@ -234,16 +236,18 @@ function TestForm({
         </Field>
       </div>
 
-      <label className="flex items-center gap-2.5 text-base">
+      <label className="flex items-start gap-2.5 text-base">
         <input
           type="checkbox"
           name="is_active"
           defaultChecked={test?.isActive ?? true}
-          className="size-5 rounded border-border"
+          className="mt-0.5 size-5 shrink-0 rounded border-border"
         />
-        Offered
-        <span className="text-sm text-muted-foreground">
-          — unticking hides it from the order form without touching past orders
+        <span>
+          Offered
+          <span className="block text-sm text-muted-foreground">
+            Unticking hides it from the order form without touching past orders.
+          </span>
         </span>
       </label>
 
@@ -274,7 +278,7 @@ export function AddTestButton({ labs }: { labs: LabRecord[] }) {
         open={open}
         onClose={() => setOpen(false)}
         title="Add a test"
-        description="The charge and cost apply to every order of this test from now on — an order already placed keeps the figures it was placed with."
+        description="The charge and cost apply to every order of this test from now on; an order already placed keeps the figures it was placed with."
       >
         <TestForm labs={labs} onClose={() => setOpen(false)} />
       </Dialog>

@@ -69,8 +69,8 @@ export function PaySalaryButton({
         title={`Pay ${staffName}`}
         description={
           partPaid
-            ? `${formatPKR(outstanding)} of this salary is still owed for ${monthLabel(forMonth)}. This writes another expense to the ledger, which cannot be edited afterwards — only reversed.`
-            : `Salary for ${monthLabel(forMonth)}. This writes an expense to the ledger, which cannot be edited afterwards — only reversed.`
+            ? `${formatPKR(outstanding)} of this salary is still owed for ${monthLabel(forMonth)}. This writes another expense to the ledger; it cannot be edited afterwards, only reversed.`
+            : `Salary for ${monthLabel(forMonth)}. This writes an expense to the ledger; it cannot be edited afterwards, only reversed.`
         }
       >
         <form ref={formRef} action={dispatch} onSubmit={captureValues} className="flex flex-col gap-4">

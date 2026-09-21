@@ -107,7 +107,7 @@ export default async function DashboardPage({
     <>
       <PageHeader
         title={`Welcome, ${profile.fullName.split(" ")[0]}`}
-        description="PMC — Paeds Medical Complex"
+        description="PMC · Paeds Medical Complex"
         actions={isAdmin ? <PeriodFilter active={period} /> : undefined}
       />
 
@@ -141,7 +141,7 @@ export default async function DashboardPage({
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <h2 className="text-base font-semibold tracking-tight">
-                    Revenue — {range.label.toLowerCase()}
+                    Revenue · {range.label.toLowerCase()}
                   </h2>
                   <p className="text-sm text-muted-foreground tabular-nums">
                     {range.from === range.to

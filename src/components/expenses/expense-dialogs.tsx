@@ -115,7 +115,7 @@ export function RecordExpenseButton() {
               name="description"
               required
               autoComplete="off"
-              placeholder="WAPDA bill — September"
+              placeholder="WAPDA bill, September"
               className={controlClass}
             />
           </Field>
@@ -174,7 +174,7 @@ export function ReverseExpenseButton({
             <span className="font-semibold whitespace-nowrap tabular-nums">
               {formatPKR(amount)}
             </span>{" "}
-            — {description}
+            · {description}
           </p>
 
           <Field

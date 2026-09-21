@@ -94,7 +94,7 @@ export function PromoteButton({ userId, name }: { userId: string; name: string }
       buttonLabel="Make admin"
       buttonClass={smallButton}
       title={`Make ${name} an administrator`}
-      description="They gain full access — money, staff, settings and every other login. Only give this to someone who should have it."
+      description="They gain full access: money, staff, settings and every other login. Only give this to someone who should have it."
       confirmLabel="Make admin"
     />
   )
@@ -192,7 +192,7 @@ export function ResetPasswordButton({ userId, name }: { userId: string; name: st
         open={open}
         onClose={() => setOpen(false)}
         title={`Reset ${name}'s password`}
-        description="Takes effect immediately. Tell them the new password yourself — nothing is emailed."
+        description="Takes effect immediately. Tell them the new password yourself; nothing is emailed."
       >
         <form
           ref={formRef}

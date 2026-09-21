@@ -187,7 +187,7 @@ export function AdmitDialog({
               </option>
               {rates.map((rate) => (
                 <option key={rate.id} value={rate.id}>
-                  {rate.name} — {formatPKR(rate.amount)}
+                  {rate.name} · {formatPKR(rate.amount)}
                 </option>
               ))}
             </select>

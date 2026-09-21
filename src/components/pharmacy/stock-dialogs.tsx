@@ -56,7 +56,7 @@ export function ReceiveStockButton({ items }: { items: ItemOption[] }) {
         open={open}
         onClose={() => setOpen(false)}
         title="Receive stock"
-        description="A new delivery — its own batch, its own cost price, even for a medicine already on the shelf."
+        description="A new delivery is its own batch and its own cost price, even for a medicine already on the shelf."
       >
         <form
           ref={formRef}
@@ -83,7 +83,7 @@ export function ReceiveStockButton({ items }: { items: ItemOption[] }) {
               {items.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
-                  {item.detail ? ` — ${item.detail}` : ""}
+                  {item.detail ? ` · ${item.detail}` : ""}
                 </option>
               ))}
             </select>
@@ -189,7 +189,7 @@ export function ReceiveStockButton({ items }: { items: ItemOption[] }) {
               label="Cost price"
               htmlFor="cost_price"
               required
-              hint="Per unit — what this batch cost PMC."
+              hint="Per unit: what this batch cost PMC."
             >
               <input
                 id="cost_price"
@@ -202,7 +202,7 @@ export function ReceiveStockButton({ items }: { items: ItemOption[] }) {
                 className={controlClass}
               />
             </Field>
-            <Field label="Sale price" htmlFor="sale_price" required hint="Per unit — what a patient pays.">
+            <Field label="Sale price" htmlFor="sale_price" required hint="Per unit: what a patient pays.">
               <input
                 id="sale_price"
                 name="sale_price"
@@ -288,7 +288,7 @@ export function EditBatchButton({ medicineName, batch }: { medicineName: string;
         open={open}
         onClose={() => setOpen(false)}
         title={`Edit ${medicineName} stock`}
-        description="For correcting a mistake in this batch's own record — not for a sale, which changes the count on its own."
+        description="For correcting a mistake in this batch's own record, not for a sale, which changes the count on its own."
       >
         <form
           ref={formRef}

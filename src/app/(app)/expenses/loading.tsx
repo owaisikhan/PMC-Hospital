@@ -22,7 +22,7 @@ export default function ExpensesLoading() {
       {/* Fixed copy, so it renders for real. */}
       <PageHeader
         title="Expenses"
-        description="Every rupee leaving PMC — running costs, salaries, and who is on the payroll."
+        description="Every rupee leaving PMC: running costs, salaries, and who is on the payroll."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <FilterGroupSkeleton width="w-52" />

@@ -48,7 +48,7 @@ export function CreateLoginButton() {
         open={open}
         onClose={() => setOpen(false)}
         title="Add a login"
-        description="Active immediately — there is no approval step and nothing is emailed. Tell them the password yourself."
+        description="Active immediately: there is no approval step and nothing is emailed. Tell them the password yourself."
       >
         <form
           ref={formRef}
@@ -111,7 +111,7 @@ export function CreateLoginButton() {
               label="Username"
               htmlFor="identifier"
               required
-              hint="Letters, numbers, dots, dashes and underscores — no spaces, no @. This is what they type to sign in, not an email."
+              hint="Letters, numbers, dots, dashes and underscores; no spaces, no @. This is what they type to sign in, not an email."
             >
               <input
                 id="identifier"

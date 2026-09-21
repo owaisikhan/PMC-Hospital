@@ -119,16 +119,18 @@ function StaffForm({ staff, onClose }: { staff?: StaffRecord; onClose: () => voi
         </Field>
       </div>
 
-      <label className="flex items-center gap-2.5 text-base">
+      <label className="flex items-start gap-2.5 text-base">
         <input
           type="checkbox"
           name="is_active"
           defaultChecked={staff?.isActive ?? true}
-          className="size-5 rounded border-border"
+          className="mt-0.5 size-5 shrink-0 rounded border-border"
         />
-        Still working at PMC
-        <span className="text-sm text-muted-foreground">
-          — unticking keeps the record and stops them appearing in the salary run
+        <span>
+          Still working at PMC
+          <span className="block text-sm text-muted-foreground">
+            Unticking keeps the record and stops them appearing in the salary run.
+          </span>
         </span>
       </label>
 

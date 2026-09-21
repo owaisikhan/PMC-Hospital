@@ -129,7 +129,7 @@ export function NewLabOrderButton({
               </option>
               {tests.map((test) => (
                 <option key={test.id} value={test.id}>
-                  {test.name} — {formatPKR(test.chargePrice)}
+                  {test.name} · {formatPKR(test.chargePrice)}
                   {test.externalLab ? ` · ${test.externalLab}` : ""}
                 </option>
               ))}

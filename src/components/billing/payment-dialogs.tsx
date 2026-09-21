@@ -83,7 +83,7 @@ export function RecordPaymentButton({
             label="Amount received"
             htmlFor="amount"
             required
-            hint="More than the balance is allowed — it is recorded as an advance."
+            hint="More than the balance is allowed; it is recorded as an advance."
           >
             <input
               id="amount"

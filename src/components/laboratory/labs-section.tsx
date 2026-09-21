@@ -46,7 +46,7 @@ export function LabsSection({
               {labs.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-4 py-6 text-center text-muted-foreground">
-                    No labs yet — add one before adding a test.
+                    No labs yet. Add one before adding a test.
                   </td>
                 </tr>
               ) : (

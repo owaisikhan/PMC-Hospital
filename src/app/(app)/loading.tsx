@@ -13,7 +13,7 @@ export default function DashboardLoading() {
     <>
       <PageHeaderSkeleton
         titleWidth="w-48"
-        description="PMC — Paeds Medical Complex"
+        description="PMC · Paeds Medical Complex"
         actions={<PeriodFilterSkeleton />}
       />
       <DashboardSkeleton />
