@@ -8,6 +8,7 @@ import {
   UpdateLabOrderButton,
   type TestOption,
 } from "@/components/laboratory/lab-dialogs"
+import { LabOrderSearch } from "@/components/laboratory/lab-order-search"
 import { LabsSection } from "@/components/laboratory/labs-section"
 import type { LabRecord, LabTestRecord } from "@/components/laboratory/lab-management-dialogs"
 import { Badge } from "@/components/ui/badge"
@@ -59,10 +60,11 @@ const TAB_ICONS: Record<LabTab, TabIconName> = { orders: "flask", tests: "shield
 export default async function LaboratoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ show?: string; tab?: string }>
+  searchParams: Promise<{ show?: string; tab?: string; q?: string }>
 }) {
-  const { show, tab: rawTab } = await searchParams
+  const { show, tab: rawTab, q: rawQ } = await searchParams
   const filter: LabFilter = isLabFilter(show) ? show : "open"
+  const q = (rawQ ?? "").trim()
 
   const profile = await requireProfile()
   const isAdmin = profile.role === "admin"
@@ -173,7 +175,14 @@ export default async function LaboratoryPage({
     isAdmitted: p.admissions.length > 0,
   }))
 
-  const billable = orders.filter((order) => order.status !== "cancelled")
+  const filteredOrders = q
+    ? orders.filter((order) => {
+        const patient = orderPatientById.get(order.patient_id)
+        return patient ? patient.full_name.toLowerCase().includes(q.toLowerCase()) : false
+      })
+    : orders
+
+  const billable = filteredOrders.filter((order) => order.status !== "cancelled")
   const charged = billable.reduce((sum, o) => sum + Number(o.charge_amount), 0)
   const cost = billable.reduce((sum, o) => sum + Number(o.cost_amount), 0)
 
@@ -249,7 +258,7 @@ export default async function LaboratoryPage({
                     return (
                       <Link
                         key={key}
-                        href={`/laboratory?show=${key}`}
+                        href={`/laboratory?show=${key}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
                         scroll={false}
                         className={cn(base, "text-muted-foreground hover:text-foreground")}
                       >
@@ -289,8 +298,20 @@ export default async function LaboratoryPage({
                 </div>
               ) : (
                 <>
+                  <LabOrderSearch initialQuery={q} carry={{ show: filter }} />
+
+                  {filteredOrders.length === 0 ? (
+                    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-10 text-center">
+                      <p className="text-base font-medium">No tests match &quot;{q}&quot;.</p>
+                      <p className="text-base text-muted-foreground">
+                        Check the spelling, or clear the search to see everything.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
                   <p className="text-base text-muted-foreground">
-                    {orders.length} {orders.length === 1 ? "test" : "tests"} · charged{" "}
+                    {filteredOrders.length} {filteredOrders.length === 1 ? "test" : "tests"}
+                    {q ? ` matching "${q}"` : ""} · charged{" "}
                     <span className="font-medium whitespace-nowrap text-foreground tabular-nums">
                       {formatPKR(charged)}
                     </span>
@@ -343,7 +364,7 @@ export default async function LaboratoryPage({
                         </tr>
                       </thead>
                       <tbody>
-                        {orders.map((order, index) => {
+                        {filteredOrders.map((order, index) => {
                           const style = STATUS_STYLE[order.status]
                           const StatusIcon = style.icon
                           const patient = orderPatientById.get(order.patient_id) ?? null
@@ -424,6 +445,8 @@ export default async function LaboratoryPage({
                       </tbody>
                     </table>
                   </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
