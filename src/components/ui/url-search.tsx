@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Search } from "lucide-react"
 
+import { useTrackPending } from "@/components/layout/navigation-progress"
 import { controlClass } from "@/components/ui/field"
 
 /**
@@ -35,6 +36,24 @@ export function UrlSearch({
   const [value, setValue] = useState(initialQuery)
 
   /**
+   * The query sent to the server and not yet answered. router.refresh()
+   * gives nothing to await - and it runs its fetch outside any transition
+   * wrapped around it, so useTransition reports done at once - but the
+   * server's answer arrives as a new initialQuery. Loading is the gap between
+   * the two, and any new initialQuery at all (an answer, or a link elsewhere
+   * on the page that changed q) closes it.
+   */
+  const [awaiting, setAwaiting] = useState<string | null>(null)
+  const [answered, setAnswered] = useState(initialQuery)
+  if (answered !== initialQuery) {
+    setAnswered(initialQuery)
+    setAwaiting(null)
+  }
+  // The top-of-window bar only. No dimming: that would fade the very box
+  // being typed into.
+  useTrackPending(awaiting !== null && awaiting !== initialQuery)
+
+  /**
    * Whether the person has actually typed something.
    *
    * Without this the debounce fires once on mount and rewrites the URL to the
@@ -62,6 +81,7 @@ export function UrlSearch({
       // the stale q sitting in the address bar and in the list below. Setting
       // the URL directly and asking the router to refetch sidesteps that.
       window.history.replaceState(null, "", target)
+      setAwaiting(value.trim())
       router.refresh()
     }, 300)
     return () => clearTimeout(timer)

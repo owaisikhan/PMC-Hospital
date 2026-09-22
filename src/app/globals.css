@@ -483,6 +483,44 @@ dialog[open]::backdrop {
 }
 
 /* ---------------------------------------------------------------------------
+   Navigation progress bar (navigation-progress.tsx)
+   Nothing reports how far a server render has got, so the bar does not
+   pretend to know: it creeps toward 85% on a long ease-out that slows as it
+   goes, then runs to the end and fades the moment the page lands. Idle snaps
+   back to zero with no transition, invisibly, ready for the next one.
+   --------------------------------------------------------------------------- */
+.nav-progress {
+  width: 0;
+  opacity: 0;
+  border-radius: 0 9999px 9999px 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--primary) 70%, transparent),
+    var(--primary) 60%,
+    color-mix(in oklch, var(--primary) 55%, white)
+  );
+  box-shadow:
+    0 0 8px 0 color-mix(in oklch, var(--primary) 70%, transparent),
+    0 0 2px 0 var(--primary);
+}
+
+.nav-progress[data-phase="loading"] {
+  width: 85%;
+  opacity: 1;
+  transition:
+    width 9s cubic-bezier(0.05, 0.75, 0.15, 1),
+    opacity 150ms ease-out;
+}
+
+.nav-progress[data-phase="done"] {
+  width: 100%;
+  opacity: 0;
+  transition:
+    width 180ms ease-out,
+    opacity 280ms ease-out 160ms;
+}
+
+/* ---------------------------------------------------------------------------
    Theme switch reveal
    The new theme opens out as a circle from the switch itself (the clip-path
    animation is driven from theme-toggle.tsx, which knows where the switch

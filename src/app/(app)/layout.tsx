@@ -1,3 +1,7 @@
+import {
+  NavigationProgressProvider,
+  PendingRegion,
+} from "@/components/layout/navigation-progress"
 import { RoleProvider } from "@/components/layout/role-context"
 import { Sidebar } from "@/components/layout/sidebar"
 import { ToastProvider } from "@/components/layout/toast-context"
@@ -27,17 +31,21 @@ export default async function AppLayout({
 
   return (
     <ToastProvider>
-      <div className="flex h-dvh overflow-hidden">
-        <Sidebar role={profile.role} logoUrl={logoUrl} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar profile={profile} />
-          <main className="app-canvas flex-1 overflow-y-auto">
-            {/* The role is published here so the loading skeletons can match the
-                page that is about to replace them. */}
-            <RoleProvider role={profile.role}>{children}</RoleProvider>
-          </main>
+      <NavigationProgressProvider>
+        <div className="flex h-dvh overflow-hidden">
+          <Sidebar role={profile.role} logoUrl={logoUrl} />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Topbar profile={profile} />
+            <main className="app-canvas flex-1 overflow-y-auto">
+              <PendingRegion>
+                {/* The role is published here so the loading skeletons can match the
+                    page that is about to replace them. */}
+                <RoleProvider role={profile.role}>{children}</RoleProvider>
+              </PendingRegion>
+            </main>
+          </div>
         </div>
-      </div>
+      </NavigationProgressProvider>
     </ToastProvider>
   )
 }
