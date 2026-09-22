@@ -483,6 +483,167 @@ dialog[open]::backdrop {
 }
 
 /* ---------------------------------------------------------------------------
+   Phone navigation drawer (mobile-nav.tsx)
+   A native modal <dialog> pinned to the left edge at full height, sliding in
+   from off-screen. The browser's default modal styling centres the box with
+   margins and caps its size, so those are undone here. The backdrop is the
+   shared dialog::backdrop below (blur and fade).
+   --------------------------------------------------------------------------- */
+.nav-drawer {
+  inset: 0 auto 0 0;
+  margin: 0;
+  padding: 0;
+  width: min(18rem, 85vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  border: 0;
+  border-right: 1px solid var(--sidebar-border);
+  background: var(--sidebar);
+  color: var(--sidebar-foreground);
+  box-shadow: 0 0 48px 0 oklch(0 0 0 / 35%);
+  translate: -100% 0;
+  transition:
+    translate 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    display 280ms allow-discrete,
+    overlay 280ms allow-discrete;
+}
+
+.nav-drawer[open] {
+  translate: 0 0;
+}
+
+@starting-style {
+  .nav-drawer[open] {
+    translate: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-drawer {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Tables on a phone
+   A .stack-table keeps its ordinary table layout from md up. Below that,
+   each row becomes a card: two columns of small labels over their values,
+   the same shape as the Billing cards, instead of a desktop-width table
+   scrolling sideways inside a narrow box with most columns out of view.
+
+   Each cell opts in from the markup:
+     data-label="Stock"      shown as the label above the value
+     data-cell="primary"     the row's title (a name) - full width, first
+     data-cell="wide"        full width, labelled
+     data-cell="actions"     full width, last, no label
+     data-cell="skip"        not shown on a phone (a row number)
+   Sortable headers (data-sort, from SortableHeader) stay available as a
+   row of chips above the cards; a table with none hides its header.
+   --------------------------------------------------------------------------- */
+@media (max-width: 47.99rem) {
+  .stack-table,
+  .stack-table tbody {
+    display: block;
+    min-width: 0;
+  }
+
+  .stack-table thead {
+    display: block;
+  }
+
+  .stack-table thead:not(:has(th[data-sort])) {
+    display: none;
+  }
+
+  .stack-table thead tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .stack-table thead th {
+    display: none;
+  }
+
+  .stack-table thead th[data-sort] {
+    display: block;
+    padding: 0;
+    font-size: 0.875rem;
+  }
+
+  .stack-table thead th[data-sort] > a {
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    padding: 0.3rem 0.75rem;
+  }
+
+  .stack-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1rem;
+    padding: 1rem;
+  }
+
+  .stack-table td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .stack-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.125rem;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--muted-foreground);
+  }
+
+  .stack-table td[data-cell="primary"] {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .stack-table td[data-cell="wide"] {
+    grid-column: 1 / -1;
+  }
+
+  .stack-table td[data-cell="actions"] {
+    grid-column: 1 / -1;
+    order: 99;
+  }
+
+  .stack-table td[data-cell="skip"],
+  .stack-table td[data-cell="actions"]:empty {
+    display: none;
+  }
+
+  /* A totals row: label and figure on one line under the cards. */
+  .stack-table tfoot {
+    display: block;
+  }
+
+  .stack-table tfoot tr {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .stack-table tfoot th,
+  .stack-table tfoot td {
+    display: block;
+    padding: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Navigation progress bar (navigation-progress.tsx)
    Nothing reports how far a server render has got, so the bar does not
    pretend to know: it creeps toward 85% on a long ease-out that slows as it

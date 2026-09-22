@@ -117,7 +117,7 @@ export function PermissionsSection({
       ) : null}
 
       <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
-        <table className="w-full min-w-[52rem] border-collapse text-base">
+        <table className="stack-table w-full md:min-w-[52rem] border-collapse text-base">
           <caption className="sr-only">Every login, its access and where it is signed in</caption>
           <thead>
             <tr className="border-b border-border text-left">
@@ -149,30 +149,30 @@ export function PermissionsSection({
 
               return (
                 <tr key={login.id} className="border-b border-border/60 last:border-b-0">
-                  <td className="px-4 py-3">
+                  <td data-cell="primary" className="px-4 py-3">
                     <span className="font-medium">{login.fullName}</span>
                     {isSelf ? (
                       <span className="ml-1.5 text-sm text-muted-foreground">(you)</span>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
+                  <td data-label="Login" className="px-4 py-3 whitespace-nowrap text-muted-foreground">
                     {login.username ? (
                       <span className="font-mono text-sm">{login.username}</span>
                     ) : (
                       login.email
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td data-label="Role" className="px-4 py-3">
                     <Badge variant={login.role === "admin" ? "default" : "neutral"}>
                       {ROLE_LABELS[login.role]}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3">
+                  <td data-label="Status" className="px-4 py-3">
                     <Badge variant={login.isActive ? "success" : "warning"}>
                       {login.isActive ? "Active" : "Deactivated"}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td data-label="Last seen" className="px-4 py-3 whitespace-nowrap">
                     {latest ? (
                       <>
                         <span className="flex items-center gap-1.5 text-success">
@@ -188,7 +188,7 @@ export function PermissionsSection({
                       <span className="text-muted-foreground">Never signed in</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td data-cell="actions" className="px-4 py-3">
                     {isSelf ? null : (
                       <div className="flex flex-wrap items-center gap-2">
                         {!login.isActive ? (

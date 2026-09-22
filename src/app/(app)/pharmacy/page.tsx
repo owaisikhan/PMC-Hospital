@@ -218,7 +218,7 @@ export default async function PharmacyPage({
                could be scrolled into. Making this the containing block keeps
                it clipped here. */
             <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
-              <table className="w-full min-w-[52rem] border-collapse text-base">
+              <table className="stack-table w-full md:min-w-[52rem] border-collapse text-base">
                 <caption className="sr-only">
                   Pharmacy stock, with purchase price, sale price and expiry date
                 </caption>
@@ -281,15 +281,15 @@ export default async function PharmacyPage({
                         key={row.id}
                         className="border-b border-border/60 last:border-b-0"
                       >
-                        <td className="px-4 py-3 text-muted-foreground tabular-nums">
+                        <td data-cell="skip" className="px-4 py-3 text-muted-foreground tabular-nums">
                           {index + 1}
                         </td>
 
-                        <td className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
+                        <td data-label="SKU" className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
                           {row.sku}
                         </td>
 
-                        <td className="px-4 py-3">
+                        <td data-cell="primary" className="px-4 py-3">
                           <span className="font-medium">{row.name}</span>
                           {row.detail ? (
                             <span className="block text-sm text-muted-foreground">
@@ -300,7 +300,7 @@ export default async function PharmacyPage({
 
                         {/* The word changes as well as the colour, so the state
                             does not depend on seeing red or green. */}
-                        <td className="px-4 py-3">
+                        <td data-label="Stock" className="px-4 py-3">
                           {row.stock === 0 ? (
                             <span className="flex items-center gap-1.5 font-semibold whitespace-nowrap text-destructive">
                               <CircleX className="size-4 shrink-0" aria-hidden />
@@ -324,7 +324,7 @@ export default async function PharmacyPage({
                         </td>
 
                         {isAdmin ? (
-                          <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
+                          <td data-label="Purchase price" className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
                             {row.costPrice === null ? (
                               <span className="text-muted-foreground">—</span>
                             ) : (
@@ -333,7 +333,7 @@ export default async function PharmacyPage({
                           </td>
                         ) : null}
 
-                        <td className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums">
+                        <td data-label="Sale price" className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums">
                           {row.salePrice === null ? (
                             <span className="text-muted-foreground">—</span>
                           ) : (
@@ -341,7 +341,7 @@ export default async function PharmacyPage({
                           )}
                         </td>
 
-                        <td className="px-4 py-3">
+                        <td data-label="Expiry date" className="px-4 py-3">
                           {row.expiry === null ? (
                             <span className="text-muted-foreground">—</span>
                           ) : (
@@ -370,7 +370,7 @@ export default async function PharmacyPage({
                         </td>
 
                         {isAdmin ? (
-                          <td className="px-4 py-3">
+                          <td data-cell="actions" className="px-4 py-3">
                             {row.editableBatch ? (
                               <EditBatchButton medicineName={row.name} batch={row.editableBatch} />
                             ) : null}

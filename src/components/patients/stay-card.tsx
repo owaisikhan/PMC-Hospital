@@ -84,7 +84,7 @@ export function StayCard({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[34rem] border-collapse text-base">
+        <table className="stack-table w-full md:min-w-[34rem] border-collapse text-base">
           <caption className="sr-only">
             Charges for the stay starting {stay.admittedOn}
           </caption>
@@ -100,15 +100,15 @@ export function StayCard({
           <tbody>
             {lines.map((line) => (
               <tr key={line.service_id} className="border-b border-border/60">
-                <td className="py-2.5 pr-4">{line.charge_name}</td>
-                <td className="py-2.5 pr-4 whitespace-nowrap tabular-nums">
+                <td data-cell="primary" className="py-2.5 pr-4">{line.charge_name}</td>
+                <td data-label="Dates" className="py-2.5 pr-4 whitespace-nowrap tabular-nums">
                   {line.from_date} → {line.effective_to}
                 </td>
-                <td className="py-2.5 pr-4 text-right tabular-nums">{line.days}</td>
-                <td className="py-2.5 pr-4 text-right whitespace-nowrap tabular-nums">
+                <td data-label="Days" className="py-2.5 pr-4 text-right tabular-nums">{line.days}</td>
+                <td data-label="Rate a day" className="py-2.5 pr-4 text-right whitespace-nowrap tabular-nums">
                   {formatPKR(Number(line.rate_amount))}
                 </td>
-                <td className="py-2.5 text-right font-medium whitespace-nowrap tabular-nums">
+                <td data-label="Amount" className="py-2.5 text-right font-medium whitespace-nowrap tabular-nums">
                   {formatPKR(Number(line.line_total))}
                 </td>
               </tr>

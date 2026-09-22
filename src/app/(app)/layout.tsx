@@ -35,7 +35,7 @@ export default async function AppLayout({
         <div className="flex h-dvh overflow-hidden">
           <Sidebar role={profile.role} logoUrl={logoUrl} />
           <div className="flex min-w-0 flex-1 flex-col">
-            <Topbar profile={profile} />
+            <Topbar profile={profile} logoUrl={logoUrl} />
             <main className="app-canvas flex-1 overflow-y-auto">
               <PendingRegion>
                 {/* The role is published here so the loading skeletons can match the

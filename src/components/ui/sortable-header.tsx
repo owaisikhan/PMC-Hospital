@@ -32,8 +32,14 @@ export function SortableHeader({
 
   const Icon = active ? (direction === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown
 
+  // data-sort keeps this header on screen, as a sort chip, when a
+  // .stack-table turns into cards on a phone (see globals.css).
   return (
-    <th scope="col" className={`px-4 py-3 font-medium ${align === "right" ? "text-right" : ""}`}>
+    <th
+      scope="col"
+      data-sort=""
+      className={`px-4 py-3 font-medium ${align === "right" ? "text-right" : ""}`}
+    >
       <Link
         href={`${basePath}?${params.toString()}`}
         scroll={false}

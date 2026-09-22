@@ -75,7 +75,7 @@ export function LabsSection({
           <AddTestButton labs={labs} />
         </div>
         <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
-          <table className="w-full min-w-[42rem] border-collapse text-base">
+          <table className="stack-table w-full md:min-w-[42rem] border-collapse text-base">
             <caption className="sr-only">
               Every test PMC offers, its lab, and both prices
             </caption>
@@ -104,29 +104,29 @@ export function LabsSection({
             <tbody>
               {tests.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+                  <td data-cell="wide" colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
                     No tests yet.
                   </td>
                 </tr>
               ) : (
                 tests.map((test) => (
                   <tr key={test.id} className="border-b border-border/60 last:border-b-0">
-                    <td className="px-4 py-3 font-medium">{test.name}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
+                    <td data-cell="primary" className="px-4 py-3 font-medium">{test.name}</td>
+                    <td data-label="Lab" className="px-4 py-3 whitespace-nowrap text-muted-foreground">
                       {test.labId ? (labById.get(test.labId)?.name ?? "—") : "—"}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums">
+                    <td data-label="Charge to patient" className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums">
                       {formatPKR(test.chargePrice)}
                     </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap text-muted-foreground tabular-nums">
+                    <td data-label="Cost to PMC" className="px-4 py-3 text-right whitespace-nowrap text-muted-foreground tabular-nums">
                       {formatPKR(test.costPrice)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td data-label="Status" className="px-4 py-3">
                       <Badge variant={test.isActive ? "success" : "neutral"}>
                         {test.isActive ? "Offered" : "Hidden"}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3">
+                    <td data-cell="actions" className="px-4 py-3">
                       <EditTestButton test={test} labs={labs} />
                     </td>
                   </tr>

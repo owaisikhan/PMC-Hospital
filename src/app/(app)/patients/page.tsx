@@ -197,13 +197,15 @@ export default async function PatientsPage({
                       <li key={patient.id}>
                         <Link
                           href={`/patients/${patient.id}`}
-                          className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl surface surface-lift px-4 py-3.5"
+                          className="relative flex flex-col gap-3 rounded-xl surface surface-lift px-4 py-3.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-2"
                         >
                           {/* A floor on the name block: with fixed-width detail
                               columns and only min-w-0 here, the name was squeezed
                               to two pixels at 1024px. Below that the details wrap
-                              onto their own line instead. */}
-                          <div className="flex min-w-[15rem] flex-1 flex-col gap-0.5">
+                              onto their own line instead. On a phone it is the
+                              full width, less room for the chevron pinned in the
+                              corner. */}
+                          <div className="flex min-w-0 flex-col gap-0.5 pr-7 sm:min-w-[15rem] sm:flex-1 sm:pr-0">
                             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                               <span className="text-lg font-semibold tracking-tight">
                                 {patient.full_name}
@@ -224,43 +226,46 @@ export default async function PatientsPage({
 
                           {/* Fixed column widths, and every cell always rendered,
                               so the columns line up down the list instead of each
-                              row starting wherever the previous one ended. */}
-                          <dl className="flex flex-wrap items-center gap-x-5 gap-y-2 text-base">
+                              row starting wherever the previous one ended. Those
+                              widths only apply from sm up: on a phone the same
+                              details sit in a two-column grid, where fixed widths
+                              made them wrap wherever they happened to fit. */}
+                          <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-base sm:flex sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-2">
                             <Detail
                               label="MRN"
                               value={patient.mrn}
                               numeric
-                              width="w-36"
+                              width="sm:w-36"
                             />
                             <Detail
                               label="Age"
                               value={formatAge(patient.date_of_birth)}
-                              width="w-24"
+                              width="sm:w-24"
                             />
                             <Detail
                               label="Gender"
                               value={patient.gender}
                               capitalize
-                              width="w-20"
+                              width="sm:w-20"
                             />
                             <Detail
                               label="Phone"
                               value={patient.guardian_phone ?? "—"}
                               numeric
-                              width="w-32"
+                              width="sm:w-32"
                             />
                             <Detail
                               label="Current bill"
                               value={stay ? formatPKR(runningTotal) : "—"}
                               numeric
                               emphasis={Boolean(stay)}
-                              width="w-28"
+                              width="sm:w-28"
                               align="right"
                             />
                           </dl>
 
                           <ChevronRight
-                            className="size-5 shrink-0 text-muted-foreground"
+                            className="absolute top-4 right-3 size-5 shrink-0 text-muted-foreground sm:static"
                             aria-hidden
                           />
                         </Link>
@@ -315,7 +320,7 @@ function Detail({
       className={[
         "flex flex-col",
         width ?? "",
-        align === "right" ? "items-end text-right" : "",
+        align === "right" ? "sm:items-end sm:text-right" : "",
       ]
         .filter(Boolean)
         .join(" ")}

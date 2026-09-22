@@ -81,7 +81,7 @@ export default async function StaffPage() {
                 Actions label clipped here instead of escaping to the
                 document. */}
             <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
-              <table className="w-full min-w-[46rem] border-collapse text-base">
+              <table className="stack-table w-full md:min-w-[46rem] border-collapse text-base">
                 <caption className="sr-only">Staff on the payroll</caption>
                 <thead>
                   <tr className="border-b border-border text-left">
@@ -111,7 +111,7 @@ export default async function StaffPage() {
                       key={person.id}
                       className="border-b border-border/60 last:border-b-0"
                     >
-                      <td className="px-4 py-3">
+                      <td data-cell="primary" className="px-4 py-3">
                         <span className="font-medium">{person.full_name}</span>
                         {/* The word carries it, not a colour. */}
                         {person.is_active ? null : (
@@ -120,19 +120,19 @@ export default async function StaffPage() {
                           </Badge>
                         )}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td data-label="Designation" className="px-4 py-3 whitespace-nowrap">
                         {person.designation}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
+                      <td data-label="Phone" className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
                         {person.phone ?? "—"}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
+                      <td data-label="Joined" className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
                         {person.joined_on}
                       </td>
-                      <td className="px-4 py-3 text-right font-semibold whitespace-nowrap tabular-nums">
+                      <td data-label="Monthly salary" className="px-4 py-3 text-right font-semibold whitespace-nowrap tabular-nums">
                         {formatPKR(Number(person.monthly_salary))}
                       </td>
-                      <td className="px-4 py-3">
+                      <td data-cell="actions" className="px-4 py-3">
                         <EditStaffButton
                           staff={
                             {

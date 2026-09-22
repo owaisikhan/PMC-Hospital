@@ -300,7 +300,7 @@ function ExpensesTab({
           dragging the page sideways; relative keeps the hidden Actions label
           clipped here instead of escaping to the document. */}
       <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
-        <table className="w-full min-w-[48rem] border-collapse text-base">
+        <table className="stack-table w-full md:min-w-[48rem] border-collapse text-base">
           <caption className="sr-only">Expenses recorded in {monthLabel(month)}</caption>
           <thead>
             <tr className="border-b border-border text-left">
@@ -331,10 +331,10 @@ function ExpensesTab({
 
               return (
                 <tr key={row.id} className="border-b border-border/60 last:border-b-0">
-                  <td className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
+                  <td data-label="Date" className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
                     {row.occurred_on}
                   </td>
-                  <td className="px-4 py-3">
+                  <td data-cell="primary" className="px-4 py-3">
                     <span
                       className={isReversed ? "text-muted-foreground line-through" : ""}
                     >
@@ -348,7 +348,7 @@ function ExpensesTab({
                       </Badge>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td data-label="Category" className="px-4 py-3 whitespace-nowrap">
                     {CATEGORY_LABELS[row.expense_cat] ?? row.expense_cat}
                     {automatic ? (
                       <span className="block text-sm text-muted-foreground">
@@ -360,17 +360,17 @@ function ExpensesTab({
                       </span>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3 capitalize whitespace-nowrap text-muted-foreground">
+                  <td data-label="Paid by" className="px-4 py-3 capitalize whitespace-nowrap text-muted-foreground">
                     {row.method}
                   </td>
-                  <td
+                  <td data-label="Amount"
                     className={`px-4 py-3 text-right font-semibold whitespace-nowrap tabular-nums${
                       isReversed ? " text-muted-foreground line-through" : ""
                     }`}
                   >
                     {formatPKR(Number(row.amount))}
                   </td>
-                  <td className="px-4 py-3">
+                  <td data-cell="actions" className="px-4 py-3">
                     {isReversed ? null : (
                       <ReverseExpenseButton
                         entryId={row.id}
@@ -424,7 +424,7 @@ function SalariesTab({
   return (
     <>
       <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
-        <table className="w-full min-w-[52rem] border-collapse text-base">
+        <table className="stack-table w-full md:min-w-[52rem] border-collapse text-base">
           <caption className="sr-only">Salary run for {monthLabel(month)}</caption>
           <thead>
             <tr className="border-b border-border text-left">
@@ -456,21 +456,21 @@ function SalariesTab({
 
               return (
                 <tr key={person.id} className="border-b border-border/60 last:border-b-0">
-                  <td className="px-4 py-3">
+                  <td data-cell="primary" className="px-4 py-3">
                     <span className="font-medium">{person.full_name}</span>
                     <span className="block text-sm text-muted-foreground">
                       {person.designation}
                     </span>
                   </td>
 
-                  <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
+                  <td data-label="Agreed salary" className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
                     {formatPKR(salary)}
                   </td>
 
                   {/* The word carries the state, not the colour - a part
                       payment used to read "Paid" in green while most of the
                       salary was still owed. */}
-                  <td className="px-4 py-3">
+                  <td data-label="Status" className="px-4 py-3">
                     {paid === 0 ? (
                       <Badge variant="warning" className="text-sm">
                         Not paid
@@ -490,7 +490,7 @@ function SalariesTab({
                     )}
                   </td>
 
-                  <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
+                  <td data-label="Paid" className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
                     <span className="font-semibold">
                       {paid === 0 ? (
                         <span className="text-muted-foreground">—</span>
@@ -530,7 +530,7 @@ function SalariesTab({
                     ) : null}
                   </td>
 
-                  <td className="px-4 py-3">
+                  <td data-cell="actions" className="px-4 py-3">
                     {outstanding > 0 ? (
                       <PaySalaryButton
                         staffId={person.id}

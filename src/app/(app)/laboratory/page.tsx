@@ -342,7 +342,7 @@ export default async function LaboratoryPage({
                       could be scrolled into. Making this the containing block keeps
                       it clipped here. */}
                   <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
-                    <table className="w-full min-w-[56rem] border-collapse text-base">
+                    <table className="stack-table w-full md:min-w-[56rem] border-collapse text-base">
                       <caption className="sr-only">
                         Lab tests ordered, with status, charge and cost
                       </caption>
@@ -372,11 +372,11 @@ export default async function LaboratoryPage({
 
                           return (
                             <tr key={order.id} className="border-b border-border/60 last:border-b-0">
-                              <td className="px-4 py-3 text-muted-foreground tabular-nums">
+                              <td data-cell="skip" className="px-4 py-3 text-muted-foreground tabular-nums">
                                 {index + 1}
                               </td>
 
-                              <td className="px-4 py-3">
+                              <td data-cell="primary" className="px-4 py-3">
                                 {patient ? (
                                   <Link
                                     href={`/patients/${patient.id}`}
@@ -394,7 +394,7 @@ export default async function LaboratoryPage({
                                 ) : null}
                               </td>
 
-                              <td className="px-4 py-3">
+                              <td data-cell="wide" data-label="Test" className="px-4 py-3">
                                 <span>{testName ?? "—"}</span>
                                 {order.result_note ? (
                                   <span className="block text-sm text-muted-foreground">
@@ -403,34 +403,34 @@ export default async function LaboratoryPage({
                                 ) : null}
                               </td>
 
-                              <td className="px-4 py-3 whitespace-nowrap tabular-nums">
+                              <td data-label="Ordered on" className="px-4 py-3 whitespace-nowrap tabular-nums">
                                 {order.ordered_on}
                               </td>
 
-                              <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
+                              <td data-label="Lab" className="px-4 py-3 whitespace-nowrap text-muted-foreground">
                                 {order.external_lab ?? "—"}
                               </td>
 
                               {/* Word and icon both change, so status never rests on
                                   colour alone. */}
-                              <td className="px-4 py-3">
+                              <td data-label="Status" className="px-4 py-3">
                                 <Badge variant={style.variant} className="text-sm whitespace-nowrap">
                                   <StatusIcon className="size-3.5" aria-hidden />
                                   {LAB_STATUS_LABELS[order.status]}
                                 </Badge>
                               </td>
 
-                              <td className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums">
+                              <td data-label="Charge" className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums">
                                 {formatPKR(Number(order.charge_amount))}
                               </td>
 
                               {isAdmin ? (
-                                <td className="px-4 py-3 text-right whitespace-nowrap text-muted-foreground tabular-nums">
+                                <td data-label="Cost" className="px-4 py-3 text-right whitespace-nowrap text-muted-foreground tabular-nums">
                                   {formatPKR(Number(order.cost_amount))}
                                 </td>
                               ) : null}
 
-                              <td className="px-4 py-3">
+                              <td data-cell="actions" className="px-4 py-3">
                                 <UpdateLabOrderButton
                                   orderId={order.id}
                                   testName={testName ?? "Test"}
