@@ -1,7 +1,8 @@
 # Sidebar artwork
 
 The source illustrations. `scripts/build-nav-icons.mjs` crops each one and
-writes the result to `public/icons/`, which is what the app actually serves.
+writes the result to `public/icons/`, which is what the app actually serves -
+both a light file and, alongside it, a `-dark` one for the dark sidebar.
 
 | File             | Sidebar item |
 | ---------------- | ------------ |
@@ -43,3 +44,20 @@ Drop the new file in here under the same name, then:
 If the new art is framed differently the old crop will be wrong, so check the
 `CROPS` map in that script. Anything already square and tightly framed, like
 `expenses.svg`, needs no crop at all.
+
+## Dark variants
+
+Most of these paint a near-white background behind the subject - a monitor
+screen, a receipt page, a light gradient card - which blends into the light
+sidebar but glows as a floating tile on the dark one. `build-nav-icons.mjs`
+also writes a `{name}-dark.svg` for each, with just that background (and
+anything that would lose contrast against it) recolored via the
+`DARK_OVERRIDES` map in that script - never the artwork's own foreground
+colors. `pharmacy.svg`, `laboratory.svg` and `patients.svg` have no near-white
+background, so their dark files are identical to the light ones.
+
+If new art needs the same treatment, find its near-white fill or gradient
+stop the same way the others were found - render it against the dark sidebar
+color (`oklch(0.175 0.012 236)`) and see what glows - then add an entry to
+`DARK_OVERRIDES` rather than editing `public/icons/*-dark.svg` by hand; that
+file is generated and gets overwritten the next time the script runs.

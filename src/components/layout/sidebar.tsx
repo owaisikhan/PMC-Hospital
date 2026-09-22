@@ -3,7 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { HeartPulse } from "lucide-react"
+import { useTheme } from "next-themes"
 
+import { useMounted } from "@/hooks/use-mounted"
 import { visibleSections } from "@/lib/navigation"
 import type { UserRole } from "@/lib/roles"
 import { cn } from "@/lib/utils"
@@ -17,6 +19,16 @@ import { cn } from "@/lib/utils"
 export function Sidebar({ role, logoUrl }: { role: UserRole; logoUrl?: string | null }) {
   const pathname = usePathname()
   const sections = visibleSections(role)
+
+  // Several of the nav illustrations paint a near-white background that
+  // works on the light sidebar and glows on the dark one; each has a
+  // "-dark" sibling built by scripts/build-nav-icons.mjs. resolvedTheme is
+  // undefined until mounted, so this renders the light icon (same as the
+  // server did) until the real theme is known, then swaps - a silent src
+  // update, not a hydration mismatch.
+  const { resolvedTheme } = useTheme()
+  const mounted = useMounted()
+  const isDark = mounted && resolvedTheme === "dark"
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
@@ -65,7 +77,7 @@ export function Sidebar({ role, logoUrl }: { role: UserRole; logoUrl?: string | 
                       {item.image ? (
                         // eslint-disable-next-line @next/next/no-img-element -- fixed-size decorative icon; Next does not optimise SVG, and serving these as files keeps ~45KB of markup out of the JS bundle
                         <img
-                          src={item.image}
+                          src={isDark ? item.image.replace(/\.svg$/, "-dark.svg") : item.image}
                           alt=""
                           aria-hidden
                           className="size-5 shrink-0"

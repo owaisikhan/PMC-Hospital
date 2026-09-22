@@ -1,4 +1,5 @@
 import { SignOutButton } from "@/components/layout/sign-out-button"
+import { ThemeToggle } from "@/components/layout/theme-toggle"
 import type { SessionProfile } from "@/lib/supabase/session"
 
 function initials(name: string) {
@@ -23,6 +24,7 @@ export function Topbar({ profile }: { profile: SessionProfile }) {
         <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
           {initials(profile.fullName)}
         </span>
+        <ThemeToggle />
         <SignOutButton />
       </div>
     </header>
