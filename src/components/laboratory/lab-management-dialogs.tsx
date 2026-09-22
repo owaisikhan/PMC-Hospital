@@ -14,8 +14,6 @@ const primaryButton =
   "flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
 const outlineButton =
   "flex h-11 items-center gap-2 rounded-lg border border-border px-3.5 text-base font-medium transition-colors hover:bg-muted"
-const smallButton =
-  "flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 
 export interface LabRecord {
   id: string
@@ -97,8 +95,8 @@ export function AddLabButton() {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={smallButton}>
-        <Plus className="size-4" aria-hidden />
+      <button type="button" onClick={() => setOpen(true)} className={primaryButton}>
+        <Plus className="size-4.5" aria-hidden />
         Add lab
       </button>
       <Dialog
