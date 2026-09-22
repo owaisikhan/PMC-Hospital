@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { CircleDashed, CircleCheck, CircleX, FlaskConical, Send } from "lucide-react"
+import { CircleDashed, CircleCheck, CircleX, Send } from "lucide-react"
 
+import { LabIcon } from "@/components/badge-icons"
 import { PageHeader } from "@/components/layout/page-header"
 import type { PatientOption } from "@/components/patients/admit-dialog"
 import {
@@ -286,7 +287,7 @@ export default async function LaboratoryPage({
                 </p>
               ) : orders.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-14 text-center">
-                  <FlaskConical className="size-8 text-muted-foreground" aria-hidden />
+                  <LabIcon className="size-12 drop-shadow-[0_4px_6px_rgb(0_0_0/0.15)]" />
                   <p className="text-base font-medium">
                     {filter === "open" ? "No tests are waiting." : "No tests ordered yet."}
                   </p>

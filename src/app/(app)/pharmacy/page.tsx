@@ -1,5 +1,6 @@
-import { AlertTriangle, CircleCheck, CircleX, Pill } from "lucide-react"
+import { AlertTriangle, CircleCheck, CircleX } from "lucide-react"
 
+import { MedicineIcon } from "@/components/badge-icons"
 import { PageHeader } from "@/components/layout/page-header"
 import { PharmacySearch } from "@/components/pharmacy/pharmacy-search"
 import { EditBatchButton, ReceiveStockButton } from "@/components/pharmacy/stock-dialogs"
@@ -175,7 +176,7 @@ export default async function PharmacyPage({
           </p>
         ) : rows.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-14 text-center">
-            <Pill className="size-8 text-muted-foreground" aria-hidden />
+            <MedicineIcon className="size-12 drop-shadow-[0_4px_6px_rgb(0_0_0/0.15)]" />
             <p className="text-base font-medium">No medicines yet.</p>
             <p className="text-base text-muted-foreground">
               Stock will appear here once it is received.

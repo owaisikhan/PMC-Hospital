@@ -1,11 +1,12 @@
-import { MapPin, Monitor, Smartphone, Tablet } from "lucide-react"
+import { MapPin } from "lucide-react"
 
+import { ComputerIcon, PhoneIcon, TabletIcon } from "@/components/badge-icons"
 import { SignOutDeviceButton } from "@/components/settings/login-dialogs"
 import type { Login, Session } from "@/components/settings/permissions-section"
 import { Badge } from "@/components/ui/badge"
 import { describeDevice, describePlace, deviceKind, timeAgo } from "@/lib/device"
 
-const KIND_ICON = { phone: Smartphone, tablet: Tablet, computer: Monitor }
+const KIND_ICON = { phone: PhoneIcon, tablet: TabletIcon, computer: ComputerIcon }
 
 /**
  * Every device each login is signed in on right now, grouped by person, the
@@ -90,9 +91,7 @@ export function DevicesSection({
                     key={device.sessionId}
                     className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3"
                   >
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="size-5" aria-hidden />
-                    </span>
+                    <Icon className="size-10 shrink-0 drop-shadow-[0_3px_5px_rgb(0_0_0/0.18)]" />
 
                     <div className="min-w-0 flex-1">
                       <p className="flex flex-wrap items-center gap-2 font-medium">

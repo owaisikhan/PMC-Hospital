@@ -1,5 +1,4 @@
-import { Users } from "lucide-react"
-
+import { StaffIcon } from "@/components/badge-icons"
 import { PageHeader } from "@/components/layout/page-header"
 import {
   AddStaffButton,
@@ -60,7 +59,7 @@ export default async function StaffPage() {
           </p>
         ) : staff.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-14 text-center">
-            <Users className="size-8 text-muted-foreground" aria-hidden />
+            <StaffIcon className="size-12 drop-shadow-[0_4px_6px_rgb(0_0_0/0.15)]" />
             <p className="text-base font-medium">No staff recorded yet.</p>
             <p className="text-base text-muted-foreground">
               Use “Add staff member” above to build the payroll.

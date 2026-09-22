@@ -1,7 +1,7 @@
 import { useId, type ReactNode } from "react"
 
 /**
- * Illustrated icons for the dashboard: a glossy rounded badge in its own
+ * Illustrated icons used across the app: a glossy rounded badge in its own
  * colour with a white glyph on top. The same subject always wears the same
  * colour (beds are sky, medicine is emerald, the lab is violet...), so a
  * stat card and the Quick Action that leads to it read as one thing. The
@@ -28,6 +28,8 @@ const GREEN: Palette = { from: "#7ee07a", to: "#1d8a36", ink: "#1d8a36" }
 const VIOLET: Palette = { from: "#b39afc", to: "#6a2ed6", ink: "#6a2ed6" }
 const AMBER: Palette = { from: "#fcc33c", to: "#d0600a", ink: "#c2570a" }
 const ROSE: Palette = { from: "#fd8a9c", to: "#c0163f", ink: "#c0163f" }
+const TEAL: Palette = { from: "#4fe0cf", to: "#0b7a70", ink: "#0b7a70" }
+const STEEL: Palette = { from: "#8aa3c7", to: "#2f4468", ink: "#2f4468" }
 
 function Badge({
   palette,
@@ -168,6 +170,80 @@ function People() {
   )
 }
 
+function Banknotes({ ink }: { ink: string }) {
+  return (
+    <>
+      <rect x="11" y="13" width="26" height="18" rx="3" fill="#fff" fillOpacity="0.45" />
+      <rect x="8" y="16.5" width="32" height="18" rx="3" fill="#fff" />
+      <circle cx="24" cy="25.5" r="4.5" fill={ink} />
+      <circle cx="13.5" cy="21.5" r="1.5" fill={ink} fillOpacity="0.45" />
+      <circle cx="34.5" cy="29.5" r="1.5" fill={ink} fillOpacity="0.45" />
+    </>
+  )
+}
+
+function Person() {
+  return (
+    <>
+      <circle cx="24" cy="18" r="6" fill="#fff" />
+      <path d="M13 36.5a11 11 0 0 1 22 0z" fill="#fff" />
+    </>
+  )
+}
+
+function Shield({ ink }: { ink: string }) {
+  return (
+    <>
+      <path d="M24 10l11 4v9c0 7-4.7 12.3-11 14.5C17.7 35.3 13 30 13 23v-9z" fill="#fff" />
+      <path d="M19 23.5l3.5 3.5 6.5-7" stroke={ink} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </>
+  )
+}
+
+/** A staff ID card on its clip. */
+function IdCard({ ink }: { ink: string }) {
+  return (
+    <>
+      <rect x="20" y="10" width="8" height="5" rx="1.5" fill="#fff" fillOpacity="0.7" />
+      <rect x="9" y="13" width="30" height="22" rx="3.5" fill="#fff" />
+      <circle cx="17.5" cy="21.5" r="3.5" fill={ink} />
+      <path d="M12.5 30.5a5 5 0 0 1 10 0z" fill={ink} />
+      <path d="M26 20h8M26 24.5h8M26 29h5" stroke={ink} strokeOpacity="0.55" strokeWidth="2" strokeLinecap="round" />
+    </>
+  )
+}
+
+function Phone({ ink }: { ink: string }) {
+  return (
+    <>
+      <rect x="16" y="9" width="16" height="30" rx="3.5" fill="#fff" />
+      <rect x="18.5" y="12.5" width="11" height="20" rx="1" fill={ink} fillOpacity="0.28" />
+      <circle cx="24" cy="35.5" r="1.3" fill={ink} />
+    </>
+  )
+}
+
+function Tablet({ ink }: { ink: string }) {
+  return (
+    <>
+      <rect x="11" y="10" width="26" height="28" rx="3.5" fill="#fff" />
+      <rect x="14" y="13" width="20" height="19.5" rx="1" fill={ink} fillOpacity="0.28" />
+      <circle cx="24" cy="35.3" r="1.2" fill={ink} />
+    </>
+  )
+}
+
+function Computer({ ink }: { ink: string }) {
+  return (
+    <>
+      <rect x="9" y="11" width="30" height="20" rx="3" fill="#fff" />
+      <rect x="12" y="14" width="24" height="14" rx="1" fill={ink} fillOpacity="0.28" />
+      <path d="M21 31h6l1.5 5h-9z" fill="#fff" fillOpacity="0.85" />
+      <path d="M17 37h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
+    </>
+  )
+}
+
 /** A small round badge at the lower right of a glyph: "new", or a warning. */
 function Corner({ ink, mark }: { ink: string; mark: "plus" | "alert" }) {
   return (
@@ -291,6 +367,77 @@ export function OutstandingIcon({ className }: { className?: string }) {
     <Badge palette={AMBER} className={className}>
       <Receipt ink={AMBER.ink} />
       <Corner ink={AMBER.ink} mark="alert" />
+    </Badge>
+  )
+}
+
+/* Page tabs and empty states elsewhere in the app. */
+
+/** Billing: a receipt, without the "new" mark. */
+export function InvoiceIcon({ className }: { className?: string }) {
+  return (
+    <Badge palette={AMBER} className={className}>
+      <g transform="translate(1 0.5)">
+        <Receipt ink={AMBER.ink} />
+      </g>
+    </Badge>
+  )
+}
+
+export const WalletIcon = RecordExpenseIcon
+
+export function SalariesIcon({ className }: { className?: string }) {
+  return (
+    <Badge palette={GREEN} className={className}>
+      <Banknotes ink={GREEN.ink} />
+    </Badge>
+  )
+}
+
+export function StaffIcon({ className }: { className?: string }) {
+  return (
+    <Badge palette={TEAL} className={className}>
+      <IdCard ink={TEAL.ink} />
+    </Badge>
+  )
+}
+
+export function PersonIcon({ className }: { className?: string }) {
+  return (
+    <Badge palette={TEAL} className={className}>
+      <Person />
+    </Badge>
+  )
+}
+
+export function ShieldIcon({ className }: { className?: string }) {
+  return (
+    <Badge palette={STEEL} className={className}>
+      <Shield ink={STEEL.ink} />
+    </Badge>
+  )
+}
+
+export function PhoneIcon({ className }: { className?: string }) {
+  return (
+    <Badge palette={INDIGO} className={className}>
+      <Phone ink={INDIGO.ink} />
+    </Badge>
+  )
+}
+
+export function TabletIcon({ className }: { className?: string }) {
+  return (
+    <Badge palette={INDIGO} className={className}>
+      <Tablet ink={INDIGO.ink} />
+    </Badge>
+  )
+}
+
+export function ComputerIcon({ className }: { className?: string }) {
+  return (
+    <Badge palette={INDIGO} className={className}>
+      <Computer ink={INDIGO.ink} />
     </Badge>
   )
 }

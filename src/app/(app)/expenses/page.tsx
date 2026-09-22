@@ -1,5 +1,4 @@
-import { UserPlus, Wallet } from "lucide-react"
-
+import { StaffIcon, WalletIcon, type BadgeIcon } from "@/components/badge-icons"
 import {
   RecordExpenseButton,
   ReverseExpenseButton,
@@ -238,13 +237,13 @@ function EmptyState({
   title,
   hint,
 }: {
-  icon: typeof Wallet
+  icon: BadgeIcon
   title: string
   hint: string
 }) {
   return (
     <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-14 text-center">
-      <Icon className="size-8 text-muted-foreground" aria-hidden />
+      <Icon className="size-12 drop-shadow-[0_4px_6px_rgb(0_0_0/0.15)]" />
       <p className="text-base font-medium">{title}</p>
       <p className="text-base text-muted-foreground">{hint}</p>
     </div>
@@ -267,7 +266,7 @@ function ExpensesTab({
   if (rows.length === 0) {
     return (
       <EmptyState
-        icon={Wallet}
+        icon={WalletIcon}
         title={`Nothing was paid out in ${monthLabel(month)}.`}
         hint="Use “Record expense” above for rent, electricity or anything else."
       />
@@ -417,7 +416,7 @@ function SalariesTab({
   if (staff.length === 0) {
     return (
       <EmptyState
-        icon={UserPlus}
+        icon={StaffIcon}
         title="Nobody is on the payroll yet."
         hint="Add people on the Staff page, then their salaries can be paid here."
       />

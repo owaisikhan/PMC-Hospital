@@ -3,37 +3,37 @@
 import Link from "next/link"
 import { useState } from "react"
 import { motion, useReducedMotion } from "motion/react"
-import {
-  Banknote,
-  BedDouble,
-  FlaskConical,
-  ShieldCheck,
-  User,
-  Users,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react"
 
+import {
+  BedsIcon,
+  LabIcon,
+  PatientsIcon,
+  PersonIcon,
+  SalariesIcon,
+  ShieldIcon,
+  WalletIcon,
+  type BadgeIcon,
+} from "@/components/badge-icons"
 import { cn } from "@/lib/utils"
 
 /**
  * Icons are looked up by name rather than passed in.
  *
- * A Lucide icon is a React component, and a component cannot be serialised
+ * An icon is a React component, and a component cannot be serialised
  * across the server-to-client boundary - handing one to this component as a
  * prop throws "Functions cannot be passed directly to Client Components" at
  * request time while still building cleanly. The server components that render
  * these tabs send a string; the mapping happens here, on the client.
  */
 const TAB_ICONS = {
-  wallet: Wallet,
-  banknote: Banknote,
-  bed: BedDouble,
-  users: Users,
-  user: User,
-  shield: ShieldCheck,
-  flask: FlaskConical,
-} satisfies Record<string, LucideIcon>
+  wallet: WalletIcon,
+  banknote: SalariesIcon,
+  bed: BedsIcon,
+  users: PatientsIcon,
+  user: PersonIcon,
+  shield: ShieldIcon,
+  flask: LabIcon,
+} satisfies Record<string, BadgeIcon>
 
 export type TabIconName = keyof typeof TAB_ICONS
 
@@ -114,11 +114,11 @@ export function SlidingTabs({
               />
             ) : null}
             {/* Above the pill, so neither is painted over mid-slide. The icon
-                inherits the label's colour, so it turns white on the selected
-                pill and grey elsewhere without a second rule. */}
+                is a colour badge (badge-icons.tsx) that reads on the pill and
+                off it alike. */}
             <span className="relative z-10 flex items-center gap-2">
               {Icon ? (
-                <Icon className={size === "large" ? "size-4.5" : "size-4"} aria-hidden />
+                <Icon className={cn("shrink-0", size === "large" ? "size-6" : "size-5")} />
               ) : null}
               {item.label}
             </span>

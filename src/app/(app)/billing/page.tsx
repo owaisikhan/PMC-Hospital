@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { Receipt } from "lucide-react"
 
+import { InvoiceIcon } from "@/components/badge-icons"
 import { PageHeader } from "@/components/layout/page-header"
 import { BalanceSummary } from "@/components/billing/balance-summary"
 import {
@@ -225,7 +225,7 @@ export default async function BillingPage({
 
         {pageRows.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-14 text-center">
-            <Receipt className="size-8 text-muted-foreground" aria-hidden />
+            <InvoiceIcon className="size-12 drop-shadow-[0_4px_6px_rgb(0_0_0/0.15)]" />
             <p className="text-base font-medium">
               {query
                 ? "No patient matches that search."

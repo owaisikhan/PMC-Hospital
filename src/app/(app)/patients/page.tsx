@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { BedDouble, ChevronRight, Users } from "lucide-react"
+import { BedDouble, ChevronRight } from "lucide-react"
 
+import { BedsIcon, PatientsIcon } from "@/components/badge-icons"
 import { PageHeader } from "@/components/layout/page-header"
 import {
   AdmitDialog,
@@ -167,9 +168,9 @@ export default async function PatientsPage({
             ) : patients.length === 0 ? (
               <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-14 text-center">
                 {filter === "admitted" ? (
-                  <BedDouble className="size-8 text-muted-foreground" aria-hidden />
+                  <BedsIcon className="size-12 drop-shadow-[0_4px_6px_rgb(0_0_0/0.15)]" />
                 ) : (
-                  <Users className="size-8 text-muted-foreground" aria-hidden />
+                  <PatientsIcon className="size-12 drop-shadow-[0_4px_6px_rgb(0_0_0/0.15)]" />
                 )}
                 <p className="text-base font-medium">
                   {query
