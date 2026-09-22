@@ -1,18 +1,18 @@
 import Link from "next/link"
 
-import type { QuickActionIcon } from "@/components/quick-action-icons"
+import type { BadgeIcon } from "@/components/badge-icons"
 
 export interface QuickAction {
   label: string
   href: string
-  icon: QuickActionIcon
+  icon: BadgeIcon
   /** Small line under the tile, e.g. "12 admitted". Omitted when not useful. */
   caption?: string
 }
 
 /**
  * Tile grid modelled on the reference HMS dashboard: a colour-coded
- * illustrated icon (quick-action-icons.tsx), with a live count underneath so
+ * illustrated icon (badge-icons.tsx), with a live count underneath so
  * the tile doubles as a status readout rather than just a link.
  */
 export function QuickActions({ actions }: { actions: QuickAction[] }) {

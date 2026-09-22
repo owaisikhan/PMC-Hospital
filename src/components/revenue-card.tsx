@@ -1,5 +1,4 @@
-import type { LucideIcon } from "lucide-react";
-
+import type { BadgeIcon } from "@/components/badge-icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { TiltCard } from "@/components/ui/tilt-card";
 import { formatPKR } from "@/lib/format";
@@ -8,7 +7,7 @@ import { cn } from "@/lib/utils";
 interface RevenueCardProps {
   label: string;
   amount: number;
-  icon: LucideIcon;
+  icon: BadgeIcon;
   /** Share of total income for the period, 0-100. Omitted when total is zero. */
   sharePercent?: number;
   emphasis?: "default" | "positive" | "negative";
@@ -27,16 +26,7 @@ export function RevenueCard({
         <CardContent className="flex flex-col gap-2 pt-5">
           <div className="flex items-start justify-between gap-3">
             <p className="text-sm text-muted-foreground">{label}</p>
-            <span
-              className={cn(
-                "flex size-8 shrink-0 items-center justify-center rounded-lg",
-                emphasis === "positive" && "bg-success/12 text-success",
-                emphasis === "negative" && "bg-destructive/12 text-destructive",
-                emphasis === "default" && "bg-primary/10 text-primary",
-              )}
-            >
-              <Icon className="size-4" />
-            </span>
+            <Icon className="size-9 shrink-0 drop-shadow-[0_3px_5px_rgb(0_0_0/0.18)]" />
           </div>
 
           {/* Money never wraps: it drops a step in size before it breaks a line. */}

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { BedDouble, RefreshCw, Users } from "lucide-react";
+import { RefreshCw } from "lucide-react";
+
+import { BedsIcon, PatientsIcon } from "@/components/badge-icons";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { TiltCard } from "@/components/ui/tilt-card";
@@ -41,7 +43,7 @@ export function FlipRevenueCard({
     meter: boolean,
     hidden: boolean,
   ) => {
-    const Icon = meter ? BedDouble : Users;
+    const Icon = meter ? BedsIcon : PatientsIcon;
     return (
       <CardContent
         aria-hidden={hidden}
@@ -49,9 +51,7 @@ export function FlipRevenueCard({
       >
         <div className="flex items-start justify-between gap-3">
           <p className="text-sm text-muted-foreground">{title}</p>
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Icon className="size-4" aria-hidden />
-          </span>
+          <Icon className="size-9 shrink-0 drop-shadow-[0_3px_5px_rgb(0_0_0/0.18)]" />
         </div>
 
         <p className="text-xl font-semibold tracking-tight whitespace-nowrap tabular-nums sm:text-2xl">

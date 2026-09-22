@@ -14,7 +14,7 @@ function StatCardSkeleton({ delay }: { delay: number }) {
           <SkeletonLine line="h-8" bar="h-6" width="w-12" delay={delay + 0.05} />
           <SkeletonLine line="h-4" bar="h-3" width="w-28" delay={delay + 0.1} />
         </div>
-        <Skeleton className="size-9 rounded-lg" delay={delay + 0.15} />
+        <Skeleton className="size-10 rounded-[0.6875rem]" delay={delay + 0.15} />
       </CardContent>
     </Card>
   )
@@ -31,7 +31,7 @@ function RevenueCardSkeleton({ meter, delay }: { meter: boolean; delay: number }
       <CardContent className="flex flex-col gap-2 pt-5">
         <div className="flex items-start justify-between gap-3">
           <SkeletonLine line="h-5" bar="h-3.5" width="w-28" delay={delay} />
-          <Skeleton className="size-8 shrink-0 rounded-lg" delay={delay + 0.05} />
+          <Skeleton className="size-9 shrink-0 rounded-[0.625rem]" delay={delay + 0.05} />
         </div>
         <SkeletonLine
           line="h-7 sm:h-8"

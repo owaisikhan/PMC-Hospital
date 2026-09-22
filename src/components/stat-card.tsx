@@ -1,5 +1,4 @@
-import type { LucideIcon } from "lucide-react";
-
+import type { BadgeIcon } from "@/components/badge-icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { TiltCard } from "@/components/ui/tilt-card";
 import { cn } from "@/lib/utils";
@@ -7,7 +6,7 @@ import { cn } from "@/lib/utils";
 interface StatCardProps {
   label: string;
   value: string;
-  icon: LucideIcon;
+  icon: BadgeIcon;
   /** Human-readable delta, e.g. "+12 since yesterday". */
   trend?: string;
   trendDirection?: "up" | "down" | "flat";
@@ -42,9 +41,7 @@ export function StatCard({
               </p>
             ) : null}
           </div>
-          <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Icon className="size-4.5" />
-          </span>
+          <Icon className="size-10 shrink-0 drop-shadow-[0_3px_5px_rgb(0_0_0/0.18)]" />
         </CardContent>
       </Card>
     </TiltCard>

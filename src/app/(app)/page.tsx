@@ -1,23 +1,21 @@
-import {
-  BedDouble,
-  CircleAlert,
-  FlaskConical,
-  Pill,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-} from "lucide-react";
-
 import { FlipRevenueCard } from "@/components/flip-revenue-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { PeriodFilter } from "@/components/period-filter";
 import {
   AdmitPatientIcon,
+  BedsIcon,
+  ExpensesIcon,
+  IncomeIcon,
+  LabIcon,
   LabOrderIcon,
+  MedicineIcon,
+  NetLossIcon,
+  NetProfitIcon,
   NewInvoiceIcon,
+  OutstandingIcon,
   PharmacySaleIcon,
   RecordExpenseIcon,
-} from "@/components/quick-action-icons";
+} from "@/components/badge-icons";
 import { QuickActions, type QuickAction } from "@/components/quick-actions";
 import { RevenueCard } from "@/components/revenue-card";
 import { StatCard } from "@/components/stat-card";
@@ -123,13 +121,13 @@ export default async function DashboardPage({
           <StatCard
             label="Currently admitted"
             value={String(admittedCount)}
-            icon={BedDouble}
+            icon={BedsIcon}
             trend={`across ${wardsInUse} ${wardsInUse === 1 ? "ward" : "wards"}`}
           />
           <StatCard
             label="Batches expiring in 90 days"
             value={String(expiringCount)}
-            icon={Pill}
+            icon={MedicineIcon}
             trend={
               expiringCount > 0
                 ? "Check pharmacy stock"
@@ -167,13 +165,13 @@ export default async function DashboardPage({
                   <RevenueCard
                     label="Pharmacy"
                     amount={totals.income.pharmacy}
-                    icon={Pill}
+                    icon={MedicineIcon}
                     sharePercent={share(totals.income.pharmacy)}
                   />
                   <RevenueCard
                     label="Laboratory"
                     amount={totals.income.lab}
-                    icon={FlaskConical}
+                    icon={LabIcon}
                     sharePercent={share(totals.income.lab)}
                   />
                 </div>
@@ -182,25 +180,25 @@ export default async function DashboardPage({
                   <RevenueCard
                     label="Total income"
                     amount={totals.totalIncome}
-                    icon={TrendingUp}
+                    icon={IncomeIcon}
                     emphasis="positive"
                   />
                   <RevenueCard
                     label="Total expenses"
                     amount={totals.totalExpenses}
-                    icon={TrendingDown}
+                    icon={ExpensesIcon}
                     emphasis="negative"
                   />
                   <RevenueCard
                     label={totals.net < 0 ? "Net loss" : "Net profit"}
                     amount={Math.abs(totals.net)}
-                    icon={Wallet}
+                    icon={totals.net < 0 ? NetLossIcon : NetProfitIcon}
                     emphasis={totals.net < 0 ? "negative" : "positive"}
                   />
                   <RevenueCard
                     label="Outstanding (all time)"
                     amount={Number(outstanding ?? 0)}
-                    icon={CircleAlert}
+                    icon={OutstandingIcon}
                     emphasis={
                       Number(outstanding ?? 0) > 0 ? "negative" : "default"
                     }
