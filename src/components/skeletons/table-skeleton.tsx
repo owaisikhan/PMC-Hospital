@@ -42,7 +42,7 @@ export function TableSkeleton({
   caption: string
 }) {
   return (
-    <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+    <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
       <table className={`w-full ${minWidth} border-collapse text-base`}>
         <caption className="sr-only">{caption}</caption>
         <thead>

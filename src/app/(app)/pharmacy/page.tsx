@@ -217,7 +217,7 @@ export default async function PharmacyPage({
                scrollable width out with it - 500px of blank space the page
                could be scrolled into. Making this the containing block keeps
                it clipped here. */
-            <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+            <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
               <table className="w-full min-w-[52rem] border-collapse text-base">
                 <caption className="sr-only">
                   Pharmacy stock, with purchase price, sale price and expiry date

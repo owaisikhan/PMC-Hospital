@@ -50,7 +50,7 @@ export function StayCard({
   const isOpen = stay.dischargedOn === null
 
   return (
-    <article className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+    <article className="flex flex-col gap-4 rounded-xl surface p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">

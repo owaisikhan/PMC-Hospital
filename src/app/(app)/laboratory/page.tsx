@@ -341,7 +341,7 @@ export default async function LaboratoryPage({
                       scrollable width out with it - 500px of blank space the page
                       could be scrolled into. Making this the containing block keeps
                       it clipped here. */}
-                  <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+                  <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
                     <table className="w-full min-w-[56rem] border-collapse text-base">
                       <caption className="sr-only">
                         Lab tests ordered, with status, charge and cost

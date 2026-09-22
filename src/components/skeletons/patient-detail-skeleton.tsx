@@ -16,7 +16,7 @@ function DetailSkeleton({ width, delay }: { width: string; delay: number }) {
  */
 function StayCardSkeleton({ delay }: { delay: number }) {
   return (
-    <article className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+    <article className="flex flex-col gap-4 rounded-xl surface p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="flex min-w-0 flex-col gap-1.5">
           {/* Ward name is text-lg, with an outcome badge beside it. */}
@@ -84,7 +84,7 @@ export function PatientDetailSkeleton() {
         Loading this patient…
       </span>
 
-      <section className="rounded-xl border border-border bg-card p-4 sm:p-5">
+      <section className="rounded-xl surface p-4 sm:p-5">
         {/* Fixed copy. */}
         <h2 className="mb-3 text-base font-semibold tracking-tight">Details</h2>
         <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">

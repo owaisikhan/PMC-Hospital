@@ -54,7 +54,7 @@ export function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-xs"
+      className="flex flex-col gap-4 rounded-xl surface p-6"
     >
       <div className="flex flex-col gap-1.5">
         <label htmlFor="identifier" className="text-sm font-medium">

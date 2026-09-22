@@ -10,7 +10,7 @@ import { Skeleton, SkeletonLine } from "@/components/ui/skeleton"
  */
 function PatientRowSkeleton({ delay }: { delay: number }) {
   return (
-    <li className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-card px-4 py-3.5">
+    <li className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl surface px-4 py-3.5">
       {/* gap-0.5 and the two line heights match the real name block exactly. */}
       <div className="flex min-w-[15rem] flex-1 flex-col gap-0.5">
         <SkeletonLine line="h-7" bar="h-5" width="w-44" delay={delay} />

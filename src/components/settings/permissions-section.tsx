@@ -69,7 +69,7 @@ export function PermissionsSection({
         <CreateLoginButton />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="overflow-hidden rounded-xl surface">
         <table className="w-full border-collapse text-base">
           <caption className="sr-only">Active users by role</caption>
           <thead>
@@ -102,7 +102,7 @@ export function PermissionsSection({
         </p>
       ) : null}
 
-      <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
         <table className="w-full min-w-[52rem] border-collapse text-base">
           <caption className="sr-only">Every login, its access and where it is signed in</caption>
           <thead>

@@ -16,14 +16,14 @@ export interface QuickAction {
  */
 export function QuickActions({ actions }: { actions: QuickAction[] }) {
   return (
-    <section className="rounded-xl border border-border bg-card p-5">
+    <section className="rounded-xl surface p-5">
       <h2 className="mb-4 text-base font-semibold tracking-tight">Quick Actions</h2>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {actions.map((action) => (
           <li key={action.href} className="flex flex-col items-center gap-1.5">
             <Link
               href={action.href}
-              className="flex w-full flex-col items-center gap-2.5 rounded-xl bg-accent px-3 py-5 text-center transition-colors hover:bg-accent/70"
+              className="flex w-full flex-col items-center gap-2.5 tile surface-lift rounded-xl px-3 py-5 text-center"
             >
               <action.icon
                 className="size-8 text-primary"

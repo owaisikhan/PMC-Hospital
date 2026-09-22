@@ -42,7 +42,7 @@ export default function ExpensesLoading() {
           {["w-36", "w-32", "w-36", "w-32"].map((width, index) => (
             <div
               key={width + index}
-              className="flex flex-col gap-0.5 rounded-xl border border-border bg-card px-4 py-3"
+              className="flex flex-col gap-0.5 rounded-xl surface px-4 py-3"
             >
               <SkeletonLine line="h-5" bar="h-3" width="w-20" delay={0.1 + index * 0.06} />
               <SkeletonLine line="h-7" bar="h-5" width={width} delay={0.14 + index * 0.06} />

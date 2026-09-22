@@ -121,7 +121,7 @@ export default async function PatientPage({
       />
 
       <div className="flex flex-col gap-5 px-4 py-6 sm:px-6">
-        <section className="rounded-xl border border-border bg-card p-4 sm:p-5">
+        <section className="rounded-xl surface p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold tracking-tight">Details</h2>
           <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
             {details.map((detail) => (

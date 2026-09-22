@@ -306,7 +306,7 @@ function NoBillNotice({ children }: { children: React.ReactNode }) {
 
 function UnbilledPatientCard({ patient }: { patient: PatientRef }) {
   return (
-    <article className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+    <article className="flex flex-col gap-4 rounded-xl surface p-4 sm:p-5">
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
           <Link
@@ -347,7 +347,7 @@ function BillCard({
   const empty = hasNoBill(balance)
 
   return (
-    <article className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+    <article className="flex flex-col gap-4 rounded-xl surface p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">

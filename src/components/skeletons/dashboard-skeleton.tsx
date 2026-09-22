@@ -93,7 +93,7 @@ export function DashboardSkeleton() {
         </section>
       ) : null}
 
-      <section className="rounded-xl border border-border bg-card p-5">
+      <section className="rounded-xl surface p-5">
         {/* Fixed copy, so it renders for real. */}
         <h2 className="mb-4 text-base font-semibold tracking-tight">Quick Actions</h2>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">

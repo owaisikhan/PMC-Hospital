@@ -42,11 +42,11 @@ export default async function LoginPage() {
         {isSupabaseConfigured ? (
           // useSearchParams reads the ?next= redirect, so the form renders on the
           // client and the page shell prerenders around it.
-          <Suspense fallback={<div className="h-72 rounded-xl border border-border bg-card" />}>
+          <Suspense fallback={<div className="h-72 rounded-xl surface" />}>
             <LoginForm />
           </Suspense>
         ) : (
-          <div className="rounded-xl border border-border bg-card p-5 text-sm">
+          <div className="rounded-xl surface p-5 text-sm">
             <p className="font-medium">Not configured yet</p>
             <p className="mt-1.5 text-muted-foreground">
               Copy <code className="font-mono text-xs">.env.example</code> to{" "}

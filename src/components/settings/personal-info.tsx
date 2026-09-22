@@ -12,7 +12,7 @@ import { changePassword, updateOwnName, uploadLogo, type ActionResult } from "@/
 const primaryButton =
   "flex h-11 items-center justify-center gap-2 self-end rounded-lg bg-primary px-4 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
 
-const sectionClass = "flex flex-col gap-4 rounded-xl border border-border bg-card p-5"
+const sectionClass = "flex flex-col gap-4 rounded-xl surface p-5"
 
 export function NameForm({ fullName }: { fullName: string }) {
   const [result, action, pending] = useActionState<ActionResult | null, FormData>(

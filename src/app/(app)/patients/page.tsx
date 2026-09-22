@@ -197,7 +197,7 @@ export default async function PatientsPage({
                       <li key={patient.id}>
                         <Link
                           href={`/patients/${patient.id}`}
-                          className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors hover:bg-muted/50"
+                          className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl surface surface-lift px-4 py-3.5"
                         >
                           {/* A floor on the name block: with fixed-width detail
                               columns and only min-w-0 here, the name was squeezed

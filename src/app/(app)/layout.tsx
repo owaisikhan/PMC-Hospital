@@ -31,7 +31,7 @@ export default async function AppLayout({
         <Sidebar role={profile.role} logoUrl={logoUrl} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar profile={profile} />
-          <main className="flex-1 overflow-y-auto bg-muted/30">
+          <main className="app-canvas flex-1 overflow-y-auto">
             {/* The role is published here so the loading skeletons can match the
                 page that is about to replace them. */}
             <RoleProvider role={profile.role}>{children}</RoleProvider>

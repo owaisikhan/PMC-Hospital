@@ -5,7 +5,7 @@ export const metadata = { title: "Awaiting approval" }
 export default function PendingApprovalPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-muted/40 px-4 py-10">
-      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 text-center">
+      <div className="w-full max-w-sm rounded-xl surface p-6 text-center">
         <span className="mx-auto mb-3 flex size-11 items-center justify-center rounded-xl bg-warning/15 text-warning-foreground">
           <ShieldAlert className="size-5" />
         </span>

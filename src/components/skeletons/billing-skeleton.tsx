@@ -25,7 +25,7 @@ function BalanceSummarySkeleton({ delay }: { delay: number }) {
 /** One family's bill. */
 function BillSkeleton({ delay }: { delay: number }) {
   return (
-    <article className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+    <article className="flex flex-col gap-4 rounded-xl surface p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-col gap-1">
           {/* Name is text-lg, with a status badge beside it. */}

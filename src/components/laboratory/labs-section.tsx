@@ -26,7 +26,7 @@ export function LabsSection({
           <h2 className="text-base font-semibold">Labs</h2>
           <AddLabButton />
         </div>
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="overflow-hidden rounded-xl surface">
           <table className="w-full border-collapse text-base">
             <caption className="sr-only">Outside labs PMC sends samples to</caption>
             <thead>
@@ -74,7 +74,7 @@ export function LabsSection({
           <h2 className="text-base font-semibold">Tests</h2>
           <AddTestButton labs={labs} />
         </div>
-        <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+        <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
           <table className="w-full min-w-[42rem] border-collapse text-base">
             <caption className="sr-only">
               Every test PMC offers, its lab, and both prices

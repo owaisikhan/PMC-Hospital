@@ -3,6 +3,7 @@
 import { useRef, type PointerEvent, type ReactNode } from "react";
 import {
   motion,
+  useMotionTemplate,
   useMotionValue,
   useReducedMotion,
   useSpring,
@@ -18,17 +19,22 @@ import { cn } from "@/lib/utils";
  */
 const MAX_TILT = 5;
 
+/** How far the card rises toward the viewer while the pointer is on it. */
+const LIFT_PX = -3;
+
 /**
- * A card that leans toward the pointer in 3D.
+ * A card that leans toward the pointer in 3D, rises a little, and catches
+ * the light where the pointer is.
  *
  * The pointer position is held in motion values rather than React state, so a
  * mouse crossing the card does not re-render anything - motion writes the
- * transform straight to the element. Only rotate and perspective are touched,
- * both of which the compositor handles, so nothing here triggers layout or
- * paint.
+ * transform, the sheen's position and its opacity straight to the elements.
+ * Only transform, opacity and a background image are touched, none of which
+ * trigger layout.
  *
  * Wraps its children rather than being a card itself, so the cards keep their
- * own markup and the tilt can be taken off again by deleting one element.
+ * own markup and the effect can be taken off again by deleting one element.
+ * data-tilt is what globals.css keys the deeper hover shadow off.
  */
 export function TiltCard({
   children,
@@ -54,6 +60,15 @@ export function TiltCard({
   const rotateX = useTransform(smoothY, [-0.5, 0.5], [-MAX_TILT, MAX_TILT]);
   const rotateY = useTransform(smoothX, [-0.5, 0.5], [MAX_TILT, -MAX_TILT]);
 
+  const lift = useSpring(0, settle);
+
+  // The sheen sits under the pointer - the part of the card leaning toward
+  // the light - and fades in and out rather than popping.
+  const sheenX = useTransform(smoothX, [-0.5, 0.5], [0, 100]);
+  const sheenY = useTransform(smoothY, [-0.5, 0.5], [0, 100]);
+  const sheen = useMotionTemplate`radial-gradient(420px circle at ${sheenX}% ${sheenY}%, var(--glare), transparent 60%)`;
+  const sheenOpacity = useSpring(0, { stiffness: 180, damping: 28 });
+
   const track = (event: PointerEvent<HTMLDivElement>) => {
     // Nothing for touch: there is no hover to lean into, and a finger dragging
     // across a card should scroll the page, not tip it.
@@ -61,16 +76,21 @@ export function TiltCard({
     const box = ref.current.getBoundingClientRect();
     pointerX.set((event.clientX - box.left) / box.width - 0.5);
     pointerY.set((event.clientY - box.top) / box.height - 0.5);
+    lift.set(LIFT_PX);
+    sheenOpacity.set(1);
   };
 
   const release = () => {
     pointerX.set(0);
     pointerY.set(0);
+    lift.set(0);
+    sheenOpacity.set(0);
   };
 
   return (
     <motion.div
       ref={ref}
+      data-tilt=""
       onPointerMove={track}
       onPointerLeave={release}
       // The perspective rides on the card's own transform, so each card leans
@@ -81,10 +101,15 @@ export function TiltCard({
       // preference - only the handlers bail out. Rendering differently under
       // prefers-reduced-motion breaks hydration, because the server cannot
       // know the preference.
-      style={{ rotateX, rotateY, transformPerspective: 900 }}
-      className={cn("h-full [&>*]:h-full", className)}
+      style={{ rotateX, rotateY, y: lift, transformPerspective: 900 }}
+      className={cn("relative h-full [&>*]:h-full", className)}
     >
       {children}
+      <motion.div
+        aria-hidden
+        style={{ backgroundImage: sheen, opacity: sheenOpacity }}
+        className="pointer-events-none absolute inset-0 rounded-xl"
+      />
     </motion.div>
   );
 }

@@ -80,7 +80,7 @@ export default async function StaffPage() {
                 than dragging the page sideways; relative keeps the hidden
                 Actions label clipped here instead of escaping to the
                 document. */}
-            <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+            <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
               <table className="w-full min-w-[46rem] border-collapse text-base">
                 <caption className="sr-only">Staff on the payroll</caption>
                 <thead>

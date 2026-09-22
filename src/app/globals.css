@@ -89,40 +89,6 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
 
 /* ---------------------------------------------------------------------------
    PMC Hospital brand tokens
@@ -157,34 +123,176 @@
   --chart-3: oklch(0.75 0.152 75);
   --chart-4: oklch(0.6 0.13 285);
   --chart-5: oklch(0.65 0.16 25);
+
+  /* Depth. Every card is lit from above: a bright hairline where light
+     catches the top edge, a faint shade along the bottom one, and a shadow
+     stack that gets softer and wider with distance, the way a real one does.
+     A single hard shadow reads as a sticker; the layers read as thickness.
+     Shadows are tinted toward the brand's navy rather than black, which
+     keeps them from looking like dirt on a white page. */
+  --surface-from: oklch(1 0 0);
+  --surface-to: oklch(0.988 0.004 240);
+  --surface-border: oklch(0.9 0.012 250);
+  --surface-border-top: oklch(0.95 0.008 250);
+  --surface-shadow:
+    inset 0 1px 0 0 oklch(1 0 0),
+    inset 0 -1px 0 0 oklch(0.35 0.04 255 / 5%),
+    0 1px 1px 0 oklch(0.3 0.045 255 / 5%),
+    0 2px 5px -1px oklch(0.3 0.045 255 / 6%),
+    0 8px 18px -6px oklch(0.3 0.045 255 / 9%),
+    0 22px 38px -18px oklch(0.3 0.045 255 / 14%);
+  --surface-shadow-raised:
+    inset 0 1px 0 0 oklch(1 0 0),
+    inset 0 -1px 0 0 oklch(0.35 0.04 255 / 5%),
+    0 2px 2px 0 oklch(0.3 0.045 255 / 5%),
+    0 6px 12px -3px oklch(0.3 0.045 255 / 9%),
+    0 18px 32px -10px oklch(0.3 0.045 255 / 14%),
+    0 36px 56px -24px oklch(0.3 0.045 255 / 20%);
+  /* The specular sheen that follows the pointer across a tilting card. White
+     is invisible on a white card, so light mode sweeps a faint brand blue. */
+  --glare: oklch(0.72 0.11 232 / 11%);
+  /* Two soft pools of light behind the working area, so the page itself has
+     some depth for the cards to sit above. */
+  --canvas-base: oklch(0.985 0.003 240);
+  --canvas-glow-a: oklch(0.9 0.05 232 / 45%);
+  --canvas-glow-b: oklch(0.93 0.035 200 / 35%);
+  /* A button that sits on a card (Quick Actions): shallower than a card - a
+     lit top and a hairline of thickness, not a full shadow stack. */
+  --tile-sheen: linear-gradient(180deg, oklch(1 0 0 / 60%), oklch(1 0 0 / 0%) 65%);
+  --tile-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 80%),
+    inset 0 -1px 0 0 oklch(0.35 0.06 245 / 10%),
+    0 1px 2px 0 oklch(0.3 0.045 255 / 8%);
 }
 
+/* ---------------------------------------------------------------------------
+   Dark: midnight navy, not neutral grey. Every surface carries a little of
+   the brand's own blue (hue ~256) so the brand accent looks like it belongs
+   to the room instead of sitting on top of it. Elevation reads as lightness:
+   sidebar darkest, page canvas next, cards and popovers progressively
+   lighter, so a raised thing is always the brighter thing.
+   --------------------------------------------------------------------------- */
 .dark {
-  --primary: oklch(0.68 0.12 236);
-  --primary-foreground: oklch(0.16 0.03 236);
-  --accent: oklch(0.28 0.038 236);
-  --accent-foreground: oklch(0.9 0.04 236);
-  --ring: oklch(0.68 0.12 236);
+  --background: oklch(0.165 0.022 258);
+  --foreground: oklch(0.955 0.008 250);
+  --card: oklch(0.212 0.026 257);
+  --card-foreground: oklch(0.955 0.008 250);
+  --popover: oklch(0.225 0.028 257);
+  --popover-foreground: oklch(0.955 0.008 250);
+  --secondary: oklch(0.27 0.028 257);
+  --secondary-foreground: oklch(0.94 0.01 250);
+  --muted: oklch(0.255 0.026 257);
+  --muted-foreground: oklch(0.72 0.024 252);
+  --destructive: oklch(0.7 0.19 22);
+  --border: oklch(0.85 0.03 250 / 10%);
+  --input: oklch(0.85 0.03 250 / 15%);
 
-  --sidebar: oklch(0.175 0.012 236);
-  --sidebar-primary: oklch(0.68 0.12 236);
-  --sidebar-primary-foreground: oklch(0.16 0.03 236);
-  --sidebar-accent: oklch(0.26 0.032 236);
-  --sidebar-accent-foreground: oklch(0.93 0.03 236);
-  --sidebar-ring: oklch(0.68 0.12 236);
+  --primary: oklch(0.72 0.135 232);
+  --primary-foreground: oklch(0.17 0.035 240);
+  --accent: oklch(0.29 0.05 240);
+  --accent-foreground: oklch(0.92 0.05 232);
+  --ring: oklch(0.72 0.135 232);
 
-  --success: oklch(0.7 0.14 155);
-  --success-foreground: oklch(0.16 0.03 155);
-  --warning: oklch(0.8 0.145 75);
-  --warning-foreground: oklch(0.2 0.05 75);
-  --info: oklch(0.7 0.12 250);
-  --info-foreground: oklch(0.16 0.03 250);
+  --sidebar: oklch(0.145 0.022 259);
+  --sidebar-foreground: oklch(0.93 0.01 250);
+  --sidebar-primary: oklch(0.72 0.135 232);
+  --sidebar-primary-foreground: oklch(0.17 0.035 240);
+  --sidebar-accent: oklch(0.255 0.045 245);
+  --sidebar-accent-foreground: oklch(0.95 0.035 232);
+  --sidebar-border: oklch(0.85 0.03 250 / 8%);
+  --sidebar-ring: oklch(0.72 0.135 232);
 
-  --chart-1: oklch(0.68 0.12 236);
-  --chart-2: oklch(0.7 0.14 155);
-  --chart-3: oklch(0.8 0.145 75);
-  --chart-4: oklch(0.7 0.12 285);
-  --chart-5: oklch(0.72 0.15 25);
+  --success: oklch(0.74 0.15 158);
+  --success-foreground: oklch(0.17 0.035 158);
+  --warning: oklch(0.82 0.145 78);
+  --warning-foreground: oklch(0.21 0.05 78);
+  --info: oklch(0.72 0.12 250);
+  --info-foreground: oklch(0.17 0.035 250);
+
+  --chart-1: oklch(0.72 0.135 232);
+  --chart-2: oklch(0.74 0.15 158);
+  --chart-3: oklch(0.82 0.145 78);
+  --chart-4: oklch(0.72 0.13 290);
+  --chart-5: oklch(0.72 0.16 25);
+
+  /* In the dark, depth comes from light more than shadow: the top edge
+     catches a thin line of it, and the shadows have to be far heavier than
+     in light mode just to register against a dark page. */
+  --surface-from: oklch(0.228 0.028 257);
+  --surface-to: oklch(0.198 0.025 257);
+  --surface-border: oklch(0.85 0.03 250 / 9%);
+  --surface-border-top: oklch(0.9 0.03 250 / 16%);
+  --surface-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 6%),
+    inset 0 -1px 0 0 oklch(0 0 0 / 30%),
+    0 1px 1px 0 oklch(0.05 0.02 260 / 35%),
+    0 3px 6px -1px oklch(0.05 0.02 260 / 35%),
+    0 10px 22px -6px oklch(0.05 0.02 260 / 45%),
+    0 26px 44px -18px oklch(0.05 0.02 260 / 55%);
+  --surface-shadow-raised:
+    inset 0 1px 0 0 oklch(1 0 0 / 9%),
+    inset 0 -1px 0 0 oklch(0 0 0 / 30%),
+    0 2px 2px 0 oklch(0.05 0.02 260 / 40%),
+    0 8px 14px -3px oklch(0.05 0.02 260 / 45%),
+    0 22px 40px -10px oklch(0.05 0.02 260 / 55%),
+    0 42px 64px -24px oklch(0.05 0.02 260 / 65%);
+  --glare: oklch(1 0 0 / 8%);
+  --canvas-base: oklch(0.165 0.022 258);
+  --canvas-glow-a: oklch(0.55 0.13 240 / 14%);
+  --canvas-glow-b: oklch(0.5 0.12 285 / 9%);
+  --tile-sheen: linear-gradient(180deg, oklch(1 0 0 / 6%), oklch(1 0 0 / 0%) 65%);
+  --tile-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 8%),
+    inset 0 -1px 0 0 oklch(0 0 0 / 30%),
+    0 1px 2px 0 oklch(0.05 0.02 260 / 45%);
+}
+
+/* A raised card. Used in place of "border border-border bg-card" wherever a
+   card is drawn, so depth is one token set to tune rather than thirty class
+   strings. The top border is lighter than the sides, the same catch-light as
+   the inset highlight, which is most of what sells the edge as an edge. */
+@utility surface {
+  color: var(--card-foreground);
+  background-color: var(--card);
+  background-image: linear-gradient(180deg, var(--surface-from), var(--surface-to));
+  border: 1px solid var(--surface-border);
+  border-top-color: var(--surface-border-top);
+  box-shadow: var(--surface-shadow);
+}
+
+/* A card that is itself a link or a button: it rises toward the pointer.
+   Transform and shadow only, so the compositor handles it without layout. */
+@utility surface-lift {
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--surface-shadow-raised);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+@utility tile {
+  background-color: var(--accent);
+  background-image: var(--tile-sheen);
+  box-shadow: var(--tile-shadow);
+}
+
+/* The page behind the cards. The glows are fixed to the scrolling area, not
+   its content, so they stay put while the cards scroll over them - which is
+   what makes the cards read as floating above something. */
+@utility app-canvas {
+  background-color: var(--canvas-base);
+  background-image:
+    radial-gradient(1100px 520px at 12% -12%, var(--canvas-glow-a), transparent 62%),
+    radial-gradient(900px 480px at 105% 0%, var(--canvas-glow-b), transparent 58%);
 }
 @layer components {
   /* Two-sided card. Tailwind 4 ships no backface-visibility or perspective
@@ -207,6 +315,101 @@
   /* The rotation itself is driven by motion in flip-revenue-card.tsx, which
      also honours prefers-reduced-motion; only perspective and backface-
      visibility live here, since those are not animated. */
+
+  /* Light/dark switch. A recessed track (shadow inside, catch-light along
+     its bottom lip) with a raised knob riding in it: daylight sky in light
+     mode, night in dark. Which side the knob sits on comes from the .dark
+     class next-themes puts on <html> before first paint, not from React
+     state, so the switch is drawn in the right place from the first frame -
+     no jump after hydration, and no JavaScript needed to position it. */
+  .theme-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 2rem;
+    padding: 0.25rem;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, oklch(0.9 0.045 225), oklch(0.95 0.03 215));
+    box-shadow:
+      inset 0 1px 3px 0 oklch(0.3 0.06 245 / 28%),
+      inset 0 -1px 0 0 oklch(1 0 0 / 80%),
+      0 0 0 1px oklch(0.3 0.06 245 / 8%);
+    transition: background 400ms ease;
+  }
+
+  .theme-switch:focus-visible {
+    outline: none;
+    box-shadow:
+      inset 0 1px 3px 0 oklch(0.3 0.06 245 / 28%),
+      0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+  }
+
+  .dark .theme-switch {
+    background: linear-gradient(180deg, oklch(0.19 0.045 265), oklch(0.25 0.055 268));
+    box-shadow:
+      inset 0 1px 3px 0 oklch(0 0 0 / 60%),
+      inset 0 -1px 0 0 oklch(1 0 0 / 7%),
+      0 0 0 1px oklch(0.85 0.03 250 / 10%);
+  }
+
+  /* The hint on the empty side of the track: the moon waits on the right in
+     light mode, a few stars glint on the left in dark. */
+  .theme-switch-hint {
+    position: absolute;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+  }
+
+  .theme-switch-knob {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, oklch(1 0 0), oklch(0.96 0.01 80));
+    box-shadow:
+      inset 0 -1px 1px 0 oklch(0.4 0.05 70 / 12%),
+      0 1px 2px 0 oklch(0.25 0.05 250 / 25%),
+      0 3px 8px -2px oklch(0.25 0.05 250 / 30%);
+    /* A little overshoot, so it lands like something with weight. */
+    transition:
+      transform 420ms cubic-bezier(0.34, 1.45, 0.5, 1),
+      background 400ms ease;
+  }
+
+  .dark .theme-switch-knob {
+    transform: translateX(1.5rem);
+    background: linear-gradient(180deg, oklch(0.36 0.05 265), oklch(0.29 0.05 265));
+    box-shadow:
+      inset 0 1px 0 0 oklch(1 0 0 / 14%),
+      0 1px 2px 0 oklch(0 0 0 / 50%),
+      0 3px 8px -2px oklch(0 0 0 / 60%),
+      0 0 12px 0 oklch(0.75 0.1 250 / 25%);
+  }
+
+  /* scale and rotate, not transform: Tailwind 4's scale-* and rotate-*
+     utilities set those standalone properties, so a transform transition
+     would never fire. */
+  .theme-switch-icon {
+    position: absolute;
+    transition:
+      scale 420ms cubic-bezier(0.34, 1.45, 0.5, 1),
+      rotate 420ms cubic-bezier(0.34, 1.45, 0.5, 1),
+      opacity 250ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-switch,
+    .theme-switch-hint,
+    .theme-switch-knob,
+    .theme-switch-icon {
+      transition: none;
+    }
+  }
 }
 
 @layer base {
@@ -266,6 +469,36 @@ dialog[open]::backdrop {
   dialog[open]::backdrop {
     animation: none;
   }
+}
+
+/* A tilting card (TiltCard) rises toward the pointer, so its shadow has to
+   grow with it or the lift reads as the card sliding up the page instead of
+   off it. Unlayered on purpose, to outrank the surface utility's own shadow. */
+[data-tilt] .surface {
+  transition: box-shadow 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-tilt]:hover .surface {
+  box-shadow: var(--surface-shadow-raised);
+}
+
+/* ---------------------------------------------------------------------------
+   Theme switch reveal
+   The new theme opens out as a circle from the switch itself (the clip-path
+   animation is driven from theme-toggle.tsx, which knows where the switch
+   is). The browser's default crossfade is turned off so the two snapshots
+   do not also fade into each other underneath the wipe. Scoped to a class
+   the switch sets only for the duration, so no other view transition is
+   ever affected by it.
+   --------------------------------------------------------------------------- */
+.theme-transition::view-transition-old(root),
+.theme-transition::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.theme-transition::view-transition-new(root) {
+  z-index: 1;
 }
 
 /* Scroll without the bar: the dialog forms are sized to fit, so a sliver of

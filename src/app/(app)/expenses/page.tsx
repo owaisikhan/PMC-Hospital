@@ -281,7 +281,7 @@ function ExpensesTab({
         {categories.map(([category, total]) => (
           <div
             key={category}
-            className="flex flex-col gap-0.5 rounded-xl border border-border bg-card px-4 py-3"
+            className="flex flex-col gap-0.5 rounded-xl surface px-4 py-3"
           >
             <span className="text-sm text-muted-foreground">
               {CATEGORY_LABELS[category] ?? category}
@@ -299,7 +299,7 @@ function ExpensesTab({
       {/* min-w-0 keeps the table scrolling inside its own card rather than
           dragging the page sideways; relative keeps the hidden Actions label
           clipped here instead of escaping to the document. */}
-      <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
         <table className="w-full min-w-[48rem] border-collapse text-base">
           <caption className="sr-only">Expenses recorded in {monthLabel(month)}</caption>
           <thead>
@@ -423,7 +423,7 @@ function SalariesTab({
 
   return (
     <>
-      <div className="relative min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
         <table className="w-full min-w-[52rem] border-collapse text-base">
           <caption className="sr-only">Salary run for {monthLabel(month)}</caption>
           <thead>
