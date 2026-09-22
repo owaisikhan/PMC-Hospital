@@ -276,17 +276,20 @@ function ExpensesTab({
 
   return (
     <>
-      {/* Where the month's money went, largest first. */}
-      <div className="flex flex-wrap gap-2">
+      {/* Where the month's money went, largest first. On a phone, two even
+          columns fill the width rather than leaving a ragged gap on the right. */}
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {categories.map(([category, total]) => (
           <div
             key={category}
-            className="flex flex-col gap-0.5 rounded-xl surface px-4 py-3"
+            className="flex min-w-0 flex-col gap-0.5 rounded-xl surface px-4 py-3"
           >
             <span className="text-sm text-muted-foreground">
               {CATEGORY_LABELS[category] ?? category}
             </span>
-            <span className="text-lg font-semibold whitespace-nowrap tabular-nums">
+            {/* A half-width card on a small phone can be narrower than a
+                seven-figure amount; there it may drop "Rs" onto its own line. */}
+            <span className="text-lg font-semibold tabular-nums sm:whitespace-nowrap">
               {formatPKR(total)}
             </span>
             <span className="text-xs text-muted-foreground tabular-nums">
