@@ -7,6 +7,7 @@ import { todayISO } from "@/lib/dates"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { requireProfile } from "@/lib/supabase/session"
+import { sessionIdFromAccessToken } from "@/lib/supabase/session-id"
 
 /** Every action returns this shape, so one message component renders them all. */
 export interface ActionResult {
@@ -1019,7 +1020,15 @@ export async function changePassword(
   const { error } = await supabase.auth.updateUser({ password: newPassword })
   if (error) return fail(describeDbError(error.message))
 
-  return { ok: true, message: "Password changed." }
+  // Supabase already ends every other session when a user changes their own
+  // password (checked: a second signed-in device is refused on its next
+  // request, this one carries on). Said out loud anyway, so that stays true
+  // even if the project's auth settings ever change. It also sweeps up the
+  // session this device was on before signInWithPassword above swapped it
+  // for a new one.
+  await supabase.auth.signOut({ scope: "others" })
+
+  return { ok: true, message: "Password changed. Your other devices have been signed out." }
 }
 
 /**
@@ -1092,6 +1101,22 @@ export async function setLogin(
     .eq("id", userId)
 
   if (error) return fail(describeDbError(error.message))
+
+  // A deactivated login was already stopped at the door, but its devices
+  // stayed signed in, which is not what "deactivated" should look like on
+  // the devices list. End them outright.
+  if (isActive === "false") {
+    const { error: revokeError } = await supabase.rpc("revoke_user_sessions", {
+      p_user_id: userId,
+    })
+    if (revokeError) {
+      revalidatePath("/settings")
+      return {
+        ok: true,
+        message: `Login deactivated, but its devices could not be signed out: ${revokeError.message}`,
+      }
+    }
+  }
 
   revalidatePath("/settings")
   return { ok: true, message: "Login updated." }
@@ -1217,5 +1242,54 @@ export async function resetLoginPassword(
   const { error } = await admin.auth.admin.updateUserById(userId, { password })
   if (error) return fail(error.message)
 
-  return { ok: true, message: "Password reset." }
+  // A reset is usually because a password leaked or a phone went missing, so
+  // the old one must stop working everywhere at once. Supabase ends other
+  // sessions when a user changes their own password, but this is the admin
+  // API changing someone else's - so it is done here explicitly rather than
+  // trusted to happen. Through the admin's own session, not the service role:
+  // revoke_user_sessions checks is_admin() itself.
+  const supabase = await createClient()
+  const { error: revokeError } = await supabase.rpc("revoke_user_sessions", {
+    p_user_id: userId,
+  })
+  revalidatePath("/settings")
+  if (revokeError) {
+    return {
+      ok: true,
+      message: `Password reset, but their devices could not be signed out: ${revokeError.message}`,
+    }
+  }
+
+  return { ok: true, message: "Password reset. They have been signed out of every device." }
+}
+
+/**
+ * Settings > Permissions: sign one device out without touching the login's
+ * password - a phone left behind, a shared PC someone forgot to log out of.
+ * The device lands on the login page at its next request.
+ */
+export async function signOutDevice(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  const profile = await requireProfile()
+  if (profile.role !== "admin") return fail("Only an administrator can sign a device out.")
+
+  const sessionId = text(form, "session_id")
+  if (!sessionId) return fail("Missing the device.")
+
+  const supabase = await createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (sessionIdFromAccessToken(session?.access_token) === sessionId) {
+    return fail("This is the device you are using. Use Sign out in the top bar instead.")
+  }
+
+  const { data, error } = await supabase.rpc("revoke_session", { p_session_id: sessionId })
+  if (error) return fail(describeDbError(error.message))
+
+  revalidatePath("/settings")
+  if (data === 0) return { ok: true, message: "That device had already signed out." }
+  return { ok: true, message: "Device signed out." }
 }

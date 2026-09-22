@@ -24,6 +24,36 @@ export function describeDevice(userAgent: string | null): string {
   return `${os} · ${browser}`
 }
 
+/** Which icon a device gets. An iPad on iPadOS 13+ claims to be a Mac. */
+export function deviceKind(userAgent: string | null): "phone" | "tablet" | "computer" {
+  if (!userAgent) return "computer"
+  if (/ipad|tablet/i.test(userAgent) || (/android/i.test(userAgent) && !/mobile/i.test(userAgent))) {
+    return "tablet"
+  }
+  if (/iphone|ipod|android|mobile/i.test(userAgent)) return "phone"
+  return "computer"
+}
+
+const COUNTRY_NAMES = new Intl.DisplayNames(["en"], { type: "region" })
+
+/**
+ * "Nowshera, Pakistan" from Vercel's city name and ISO country code. Null
+ * when neither is known yet - a session that has not made a request since
+ * locations started being recorded, or anything running locally.
+ */
+export function describePlace(city: string | null, country: string | null): string | null {
+  let countryName: string | null = null
+  if (country) {
+    try {
+      countryName = COUNTRY_NAMES.of(country) ?? country
+    } catch {
+      countryName = country
+    }
+  }
+  if (city && countryName) return `${city}, ${countryName}`
+  return city ?? countryName
+}
+
 const RELATIVE_TIME = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["year", 31536000],

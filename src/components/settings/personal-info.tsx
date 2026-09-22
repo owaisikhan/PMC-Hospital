@@ -78,7 +78,12 @@ export function PasswordForm() {
       onSubmit={captureValues}
       className={sectionClass}
     >
-      <h2 className="text-base font-semibold">Change password</h2>
+      <div>
+        <h2 className="text-base font-semibold">Change password</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          You stay signed in here; every other device you are signed in on is signed out.
+        </p>
+      </div>
       <Field label="Current password" htmlFor="old_password" required>
         <input
           id="old_password"

@@ -14,8 +14,20 @@ import { SlidingTabs, type TabIconName, type TabItem } from "@/components/ui/sli
 import { TabPanel } from "@/components/ui/tab-panel"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/supabase/session"
+import { sessionIdFromAccessToken } from "@/lib/supabase/session-id"
 
 export const metadata = { title: "Settings" }
+
+/**
+ * auth.sessions.refreshed_at is a timestamp without a time zone (UTC in
+ * practice) while the others carry one. Reading the bare one as-is would
+ * treat it as server-local time, so everything is normalised to UTC ISO here,
+ * which also makes the values safe to compare as strings.
+ */
+function toUtcIso(value: string): string {
+  const hasZone = /(?:Z|[+-]\d{2}(?::?\d{2})?)$/.test(value)
+  return new Date(hasZone ? value : `${value.replace(" ", "T")}Z`).toISOString()
+}
 
 const TABS = ["personal", "permissions"] as const
 type SettingsTab = (typeof TABS)[number]
@@ -79,17 +91,42 @@ export default async function SettingsPage({
       user_id: string
       session_id: string
       user_agent: string | null
+      ip: string | null
       created_at: string
       refreshed_at: string | null
       not_after: string | null
+      city: string | null
+      country: string | null
+      seen_ip: string | null
+      last_seen_at: string | null
     }[]
-  ).map((row) => ({
-    userId: row.user_id,
-    sessionId: row.session_id,
-    userAgent: row.user_agent,
-    createdAt: row.created_at,
-    lastSeenAt: row.refreshed_at ?? row.created_at,
-  }))
+  ).map((row) => {
+    const createdAt = toUtcIso(row.created_at)
+    return {
+      userId: row.user_id,
+      sessionId: row.session_id,
+      userAgent: row.user_agent,
+      createdAt,
+      lastSeenAt: [row.last_seen_at, row.refreshed_at]
+        .filter((value): value is string => Boolean(value))
+        .map(toUtcIso)
+        .reduce((latest, value) => (value > latest ? value : latest), createdAt),
+      city: row.city,
+      country: row.country,
+      ip: row.ip,
+      seenIp: row.seen_ip,
+    }
+  })
+
+  // Which of those is the device this page is being viewed on, so it can be
+  // labelled and left without a Sign out button of its own.
+  let currentSessionId: string | null = null
+  if (tab === "permissions") {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    currentSessionId = sessionIdFromAccessToken(session?.access_token)
+  }
 
   const tabItems: TabItem[] = TABS.map((key) => ({
     key,
@@ -128,6 +165,7 @@ export default async function SettingsPage({
               logins={loginRows}
               sessions={sessionRows}
               currentUserId={profile.id}
+              currentSessionId={currentSessionId}
             />
           )}
         </TabPanel>

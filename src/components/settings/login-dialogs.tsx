@@ -1,14 +1,14 @@
 "use client"
 
 import { useActionState, useEffect, useState } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2, LogOut } from "lucide-react"
 
 import { Dialog } from "@/components/ui/dialog"
 import { Field, controlClass } from "@/components/ui/field"
 import { FormMessage } from "@/components/ui/form-message"
 import { useFormValues } from "@/hooks/use-form-values"
 import { useToastOnResult } from "@/hooks/use-toast-on-result"
-import { resetLoginPassword, setLogin, type ActionResult } from "@/lib/actions"
+import { resetLoginPassword, setLogin, signOutDevice, type ActionResult } from "@/lib/actions"
 
 const primaryButton =
   "flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
@@ -132,7 +132,7 @@ export function DeactivateButton({
       buttonLabel="Deactivate"
       buttonClass={smallButton}
       title={`Deactivate ${name}`}
-      description="They can no longer sign in. Their record and everything they entered stays exactly as it is, and this can be undone at any time."
+      description="They are signed out of every device and can no longer sign in. Their record and everything they entered stays exactly as it is, and this can be undone at any time."
       confirmLabel="Deactivate"
     />
   )
@@ -192,7 +192,7 @@ export function ResetPasswordButton({ userId, name }: { userId: string; name: st
         open={open}
         onClose={() => setOpen(false)}
         title={`Reset ${name}'s password`}
-        description="Takes effect immediately. Tell them the new password yourself; nothing is emailed."
+        description="Takes effect immediately, and signs them out of every device they are on. Tell them the new password yourself; nothing is emailed."
       >
         <form
           ref={formRef}
@@ -223,6 +223,68 @@ export function ResetPasswordButton({ userId, name }: { userId: string; name: st
             <button type="submit" disabled={pending} className={primaryButton}>
               {pending ? <Loader2 className="size-4.5 animate-spin" aria-hidden /> : null}
               {pending ? "Resetting…" : "Reset password"}
+            </button>
+          </div>
+        </form>
+      </Dialog>
+    </>
+  )
+}
+
+/**
+ * Signs one device out: the password stays as it is, so they can sign straight
+ * back in on a device they still have. For a lost phone or a shared PC left
+ * signed in - if the password itself may be known, Reset password instead,
+ * which ends every device at once.
+ */
+export function SignOutDeviceButton({
+  sessionId,
+  name,
+  device,
+}: {
+  sessionId: string
+  name: string
+  device: string
+}) {
+  const [open, setOpen] = useState(false)
+  const [result, action, pending] = useActionState<ActionResult | null, FormData>(
+    signOutDevice,
+    null
+  )
+  useToastOnResult(result)
+
+  useEffect(() => {
+    if (result?.ok) {
+      const timer = setTimeout(() => setOpen(false), 1200)
+      return () => clearTimeout(timer)
+    }
+  }, [result])
+
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className={smallButton}>
+        <LogOut className="size-4" aria-hidden />
+        Sign out
+      </button>
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title={`Sign ${name} out of ${device}`}
+        description="That device goes back to the login page on its next click. Their password does not change, so they can sign in again. If the password itself may be known to someone else, use Reset password instead."
+      >
+        <form action={action} className="flex flex-col gap-4">
+          <input type="hidden" name="session_id" value={sessionId} />
+
+          <FormMessage result={result} />
+
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+            <button type="button" onClick={() => setOpen(false)} className={outlineButton}>
+              Cancel
+            </button>
+            <button type="submit" disabled={pending} className={primaryButton}>
+              {pending ? <Loader2 className="size-4.5 animate-spin" aria-hidden /> : null}
+              {pending ? "Signing out…" : "Sign out device"}
             </button>
           </div>
         </form>

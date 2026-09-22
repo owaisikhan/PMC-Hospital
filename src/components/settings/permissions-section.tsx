@@ -1,6 +1,7 @@
 import { UserRoundCheck } from "lucide-react"
 
 import { CreateLoginButton } from "@/components/settings/create-login-dialog"
+import { DevicesSection } from "@/components/settings/devices-section"
 import {
   DeactivateButton,
   DemoteButton,
@@ -26,9 +27,20 @@ export interface Session {
   userId: string
   sessionId: string
   userAgent: string | null
+  /** ISO, UTC. When this device signed in. */
   createdAt: string
-  /** refreshed_at when the session has been used since, else createdAt. */
+  /**
+   * ISO, UTC. The latest of: last recorded activity (proxy, every few
+   * minutes), last token refresh (hourly), sign-in.
+   */
   lastSeenAt: string
+  /** From Vercel's geolocation of the device's recent requests. */
+  city: string | null
+  country: string | null
+  /** The address it signed in from. */
+  ip: string | null
+  /** The address of its most recent recorded request, when known. */
+  seenIp: string | null
 }
 
 const ROLES: UserRole[] = ["admin", "staff"]
@@ -37,10 +49,12 @@ export function PermissionsSection({
   logins,
   sessions,
   currentUserId,
+  currentSessionId,
 }: {
   logins: Login[]
   sessions: Session[]
   currentUserId: string
+  currentSessionId: string | null
 }) {
   const pending = logins.filter((login) => !login.isActive)
   const active = logins.filter((login) => login.isActive)
@@ -210,6 +224,13 @@ export function PermissionsSection({
           </tbody>
         </table>
       </div>
+
+      <DevicesSection
+        logins={logins}
+        sessions={sessions}
+        currentUserId={currentUserId}
+        currentSessionId={currentSessionId}
+      />
     </div>
   )
 }
