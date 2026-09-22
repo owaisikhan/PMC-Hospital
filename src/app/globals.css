@@ -437,6 +437,27 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
+  /* Column headings. At the same size and colour as the rows they read as
+     one more row; small, muted capitals mark them as labels for what is
+     underneath, the way a ledger's printed headings do. In base, so a
+     text-foreground on an active sort header still wins. */
+  thead th {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--muted-foreground);
+  }
+
+  /* A data table that fills its card gets a faint band behind the headings,
+     so the header reads as the card's top edge rather than floating text.
+     Only a table sitting directly in the card: one inside a card's padding
+     (a stay's charges) would show the band ending short of the edges. */
+  .surface > table > thead {
+    background-color: color-mix(in oklch, var(--muted) 55%, transparent);
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -568,10 +589,14 @@ dialog[open]::backdrop {
     display: none;
   }
 
+  /* On a phone the sort headers are chips, which read as buttons, not
+     column headings - so back to ordinary case and size. */
   .stack-table thead th[data-sort] {
     display: block;
     padding: 0;
     font-size: 0.875rem;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .stack-table thead th[data-sort] > a {
