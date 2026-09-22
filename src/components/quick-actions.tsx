@@ -1,18 +1,19 @@
 import Link from "next/link"
-import type { LucideIcon } from "lucide-react"
+
+import type { QuickActionIcon } from "@/components/quick-action-icons"
 
 export interface QuickAction {
   label: string
   href: string
-  icon: LucideIcon
+  icon: QuickActionIcon
   /** Small line under the tile, e.g. "12 admitted". Omitted when not useful. */
   caption?: string
 }
 
 /**
- * Tile grid modelled on the reference HMS dashboard: a large outline icon on a
- * tinted square, with a live count underneath so the tile doubles as a status
- * readout rather than just a link.
+ * Tile grid modelled on the reference HMS dashboard: a colour-coded
+ * illustrated icon (quick-action-icons.tsx), with a live count underneath so
+ * the tile doubles as a status readout rather than just a link.
  */
 export function QuickActions({ actions }: { actions: QuickAction[] }) {
   return (
@@ -23,14 +24,10 @@ export function QuickActions({ actions }: { actions: QuickAction[] }) {
           <li key={action.href} className="flex flex-col items-center gap-1.5">
             <Link
               href={action.href}
-              className="flex w-full flex-col items-center gap-2.5 tile surface-lift rounded-xl px-3 py-5 text-center"
+              className="group flex w-full flex-col items-center gap-3 tile surface-lift rounded-xl px-3 py-5 text-center"
             >
-              <action.icon
-                className="size-8 text-primary"
-                strokeWidth={1.5}
-                aria-hidden
-              />
-              <span className="text-sm font-medium text-primary">{action.label}</span>
+              <action.icon className="size-13 drop-shadow-[0_6px_8px_rgb(0_0_0/0.18)] transition-transform duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:transform-none" />
+              <span className="text-sm font-medium text-foreground">{action.label}</span>
             </Link>
             {action.caption ? (
               <span className="text-xs text-muted-foreground">{action.caption}</span>

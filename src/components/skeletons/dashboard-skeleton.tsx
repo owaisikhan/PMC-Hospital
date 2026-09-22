@@ -99,8 +99,8 @@ export function DashboardSkeleton() {
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {Array.from({ length: tiles }, (_, index) => (
             <li key={index} className="flex flex-col items-center gap-1.5">
-              <div className="flex w-full flex-col items-center gap-2.5 rounded-xl bg-accent px-3 py-5">
-                <Skeleton className="size-8 rounded-lg" delay={0.7 + index * 0.08} />
+              <div className="flex w-full flex-col items-center gap-3 rounded-xl bg-accent px-3 py-5">
+                <Skeleton className="size-13 rounded-[0.875rem]" delay={0.7 + index * 0.08} />
                 <SkeletonLine
                   line="h-5"
                   bar="h-3.5"

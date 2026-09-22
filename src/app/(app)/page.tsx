@@ -3,7 +3,6 @@ import {
   CircleAlert,
   FlaskConical,
   Pill,
-  Receipt,
   TrendingDown,
   TrendingUp,
   Wallet,
@@ -12,6 +11,13 @@ import {
 import { FlipRevenueCard } from "@/components/flip-revenue-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { PeriodFilter } from "@/components/period-filter";
+import {
+  AdmitPatientIcon,
+  LabOrderIcon,
+  NewInvoiceIcon,
+  PharmacySaleIcon,
+  RecordExpenseIcon,
+} from "@/components/quick-action-icons";
 import { QuickActions, type QuickAction } from "@/components/quick-actions";
 import { RevenueCard } from "@/components/revenue-card";
 import { StatCard } from "@/components/stat-card";
@@ -92,14 +98,14 @@ export default async function DashboardPage({
     {
       label: "Admit Patient",
       href: "/patients",
-      icon: BedDouble,
+      icon: AdmitPatientIcon,
       caption: `${admittedCount} admitted · ${pluralize(patientCount, "patient")}`,
     },
-    { label: "Pharmacy Sale", href: "/pharmacy", icon: Pill },
-    { label: "Lab Order", href: "/laboratory", icon: FlaskConical },
-    { label: "New Invoice", href: "/billing", icon: Receipt },
+    { label: "Pharmacy Sale", href: "/pharmacy", icon: PharmacySaleIcon },
+    { label: "Lab Order", href: "/laboratory", icon: LabOrderIcon },
+    { label: "New Invoice", href: "/billing", icon: NewInvoiceIcon },
     ...(isAdmin
-      ? [{ label: "Record Expense", href: "/expenses", icon: Wallet }]
+      ? [{ label: "Record Expense", href: "/expenses", icon: RecordExpenseIcon }]
       : []),
   ];
 
