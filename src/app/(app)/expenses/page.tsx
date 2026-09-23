@@ -492,7 +492,10 @@ function SalariesTab({
                     )}
                   </td>
 
-                  <td data-label="Paid" className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
+                  {/* Full width on a phone: each instalment line (date, amount,
+                      Reverse) is wider than half a card, and squeezed into one
+                      it was pushed off the card's left edge. */}
+                  <td data-label="Paid" data-cell="wide" className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
                     <span className="font-semibold">
                       {paid === 0 ? (
                         <span className="text-muted-foreground">—</span>
@@ -514,13 +517,15 @@ function SalariesTab({
                     {/* Each instalment on its own line, so a mistaken one can
                         be reversed without touching the others. */}
                     {payments.length > 0 ? (
-                      <span className="mt-1.5 flex flex-col items-end gap-1">
+                      <span className="mt-1.5 flex flex-col items-start gap-1.5 md:items-end">
                         {payments.map((payment) => (
                           <span
                             key={payment.id}
                             className="flex items-center gap-2 text-sm font-normal text-muted-foreground"
                           >
-                            {payment.paidOn} · {formatPKR(payment.amount)}
+                            <span className="whitespace-nowrap">
+                              {payment.paidOn} · {formatPKR(payment.amount)}
+                            </span>
                             <ReverseExpenseButton
                               entryId={payment.ledgerId}
                               amount={payment.amount}
