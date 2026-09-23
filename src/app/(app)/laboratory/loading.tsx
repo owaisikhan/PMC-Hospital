@@ -1,3 +1,6 @@
+"use client"
+
+import { useRole } from "@/components/layout/role-context"
 import { PageHeaderSkeleton } from "@/components/skeletons/page-header-skeleton"
 import {
   FilterGroupSkeleton,
@@ -21,6 +24,13 @@ const COLUMNS: SkeletonColumn[] = [
 ]
 
 export default function LaboratoryLoading() {
+  // What something cost PMC is admin-only on the real page, so staff do not
+  // see the column even as a placeholder heading. The layout has already
+  // resolved the role by the time this renders (role-context.tsx).
+  const role = useRole()
+  const columns =
+    role === "admin" ? COLUMNS : COLUMNS.filter((column) => column.label !== "Cost")
+
   return (
     <>
       {/* The title is fixed, but the description is not: it depends on whether
@@ -40,7 +50,7 @@ export default function LaboratoryLoading() {
       <div className="flex flex-col gap-4 px-4 py-6 sm:px-6">
         <TableSummarySkeleton width="w-[28rem]" />
         <TableSkeleton
-          columns={COLUMNS}
+          columns={columns}
           minWidth="min-w-[56rem]"
           caption="Loading lab orders"
         />

@@ -1,4 +1,7 @@
+"use client"
+
 import { PageHeader } from "@/components/layout/page-header"
+import { useRole } from "@/components/layout/role-context"
 import {
   TableSkeleton,
   TableSummarySkeleton,
@@ -21,6 +24,13 @@ const COLUMNS: SkeletonColumn[] = [
 ]
 
 export default function PharmacyLoading() {
+  // What something cost PMC is admin-only on the real page, so staff do not
+  // see the column even as a placeholder heading. The layout has already
+  // resolved the role by the time this renders (role-context.tsx).
+  const role = useRole()
+  const columns =
+    role === "admin" ? COLUMNS : COLUMNS.filter((column) => column.label !== "Purchase price")
+
   return (
     <>
       {/* Title and description are fixed copy, so they render for real. */}
@@ -32,7 +42,7 @@ export default function PharmacyLoading() {
       <div className="flex flex-col gap-4 px-4 py-6 sm:px-6">
         <TableSummarySkeleton width="w-56" />
         <TableSkeleton
-          columns={COLUMNS}
+          columns={columns}
           minWidth="min-w-[52rem]"
           caption="Loading pharmacy stock"
         />
