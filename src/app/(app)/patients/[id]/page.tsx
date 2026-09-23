@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { cache } from "react"
 import { ArrowLeft } from "lucide-react"
 
 import { PageHeader } from "@/components/layout/page-header"
@@ -28,19 +29,31 @@ interface PatientRecord {
   }[]
 }
 
+/**
+ * One lookup per request, shared by the tab title (generateMetadata) and the
+ * page, which used to ask for the same patient separately.
+ */
+const getPatient = cache(async (id: string) => {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("patients")
+    .select(
+      `id, mrn, full_name, father_name, date_of_birth, gender, guardian_phone, address,
+       admissions(id, admitted_on, discharged_on, status, diagnosis, wards(name))`
+    )
+    .eq("id", id)
+    .maybeSingle()
+  return data as unknown as PatientRecord | null
+})
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from("patients")
-    .select("full_name")
-    .eq("id", id)
-    .maybeSingle()
-  return { title: data?.full_name ?? "Patient" }
+  const patient = await getPatient(id)
+  return { title: patient?.full_name ?? "Patient" }
 }
 
 export default async function PatientPage({
@@ -52,17 +65,16 @@ export default async function PatientPage({
   await requireProfile()
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from("patients")
-    .select(
-      `id, mrn, full_name, father_name, date_of_birth, gender, guardian_phone, address,
-       admissions(id, admitted_on, discharged_on, status, diagnosis, wards(name))`
-    )
-    .eq("id", id)
-    .maybeSingle()
+  // Charge rates depend on nothing about the patient, so they are asked for
+  // alongside the patient rather than after the charge lines.
+  const ratesRequest = supabase
+    .from("charge_rates")
+    .select("id, name, amount")
+    .eq("is_active", true)
+    .order("sort_order")
+  const [patient, { data: rateRows }] = await Promise.all([getPatient(id), ratesRequest])
 
-  if (!data) notFound()
-  const patient = data as unknown as PatientRecord
+  if (!patient) notFound()
 
   const stayIds = patient.admissions.map((a) => a.id)
   const { data: lineRows } = stayIds.length
@@ -76,11 +88,6 @@ export default async function PatientPage({
     linesByStay.set(line.admission_id, list)
   }
 
-  const { data: rateRows } = await supabase
-    .from("charge_rates")
-    .select("id, name, amount")
-    .eq("is_active", true)
-    .order("sort_order")
   const rates: RateOption[] = (rateRows ?? []).map((r) => ({
     id: r.id,
     name: r.name,

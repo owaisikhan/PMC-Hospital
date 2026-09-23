@@ -16,17 +16,17 @@ export default async function AppLayout({
 }) {
   // Every page under this layout is gated twice: here, and again by the
   // database's row level security when it actually reads anything.
-  const profile = await requireProfile()
-
-  // Anyone signed in can read this row (RLS: "read settings"), so the logo
-  // shows the same for every login rather than only once Settings has been
-  // visited.
+  //
+  // The logo is fetched alongside the profile rather than after it: anyone
+  // signed in can read this row (RLS: "read settings"), so it does not depend
+  // on who the profile turns out to be, and waiting was a wasted round trip.
+  // If the visitor is not signed in, requireProfile redirects and the logo is
+  // simply never used.
   const supabase = await createClient()
-  const { data: branding } = await supabase
-    .from("settings")
-    .select("value")
-    .eq("key", "branding")
-    .maybeSingle()
+  const [profile, { data: branding }] = await Promise.all([
+    requireProfile(),
+    supabase.from("settings").select("value").eq("key", "branding").maybeSingle(),
+  ])
   const logoUrl = (branding?.value as { logo_url?: string } | null)?.logo_url ?? null
 
   return (

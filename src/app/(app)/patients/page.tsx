@@ -75,6 +75,24 @@ export default async function PatientsPage({
     request = request.or(`full_name.ilike.%${safe}%,mrn.ilike.%${safe}%`)
   }
 
+  // The admit dialog's pickers (wards, rates, patients) depend on nothing
+  // below, so they are asked for now, alongside the list, and only waited
+  // for at the end - rather than queuing behind two queries they don't need.
+  const pickers = Promise.all([
+    supabase.from("wards").select("id, name").eq("is_active", true).order("sort_order"),
+    supabase
+      .from("charge_rates")
+      .select("id, name, amount")
+      .eq("is_active", true)
+      .order("sort_order"),
+    supabase
+      .from("patients")
+      .select("id, mrn, full_name, date_of_birth, admissions!left(id)")
+      .is("admissions.discharged_on", null)
+      .order("created_at", { ascending: false })
+      .limit(500),
+  ])
+
   const { data, count, error } = await request
   const patients = (data ?? []) as unknown as PatientRow[]
   const total = count ?? 0
@@ -94,20 +112,7 @@ export default async function PatientsPage({
     }
   }
 
-  const [wardsResult, ratesResult, allPatientsResult] = await Promise.all([
-    supabase.from("wards").select("id, name").eq("is_active", true).order("sort_order"),
-    supabase
-      .from("charge_rates")
-      .select("id, name, amount")
-      .eq("is_active", true)
-      .order("sort_order"),
-    supabase
-      .from("patients")
-      .select("id, mrn, full_name, date_of_birth, admissions!left(id)")
-      .is("admissions.discharged_on", null)
-      .order("created_at", { ascending: false })
-      .limit(500),
-  ])
+  const [wardsResult, ratesResult, allPatientsResult] = await pickers
 
   const wards: WardOption[] = (wardsResult.data ?? []).map((w) => ({
     id: w.id,

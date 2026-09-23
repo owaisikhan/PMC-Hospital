@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { redirect } from "next/navigation"
 
 import type { UserRole } from "@/lib/roles"
@@ -14,21 +15,34 @@ export interface SessionProfile {
   email: string
 }
 
-/** Signed-in profile, or null. Does not redirect. */
-export async function getSessionProfile(): Promise<SessionProfile | null> {
+/**
+ * Signed-in profile, or null. Does not redirect.
+ *
+ * Wrapped in React's cache() so the layout (for the header) and the page
+ * (for its role check) share one lookup per request instead of each doing
+ * their own.
+ *
+ * The identity comes from getClaims(), which checks the access token's
+ * signature locally against the project's public signing keys (kept in
+ * memory between requests) - no trip to the auth server. That is safe here
+ * because the proxy has already asked the auth server about this very token
+ * on this very request (getUser there), and turned the request away if it
+ * was signed out or revoked. Asking a second and third time only added a
+ * round trip each (~150 ms when the server and database sat on different
+ * continents).
+ */
+export const getSessionProfile = cache(async (): Promise<SessionProfile | null> => {
   if (!isSupabaseConfigured) return null
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) return null
+  const { data } = await supabase.auth.getClaims()
+  const claims = data?.claims
+  if (!claims?.sub) return null
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, full_name, role, is_active")
-    .eq("id", user.id)
+    .eq("id", claims.sub)
     .single()
 
   if (!profile) return null
@@ -38,9 +52,9 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     fullName: profile.full_name,
     role: profile.role,
     isActive: profile.is_active,
-    email: user.email ?? "",
+    email: typeof claims.email === "string" ? claims.email : "",
   }
-}
+})
 
 /** Signed-in profile, or redirect to login. Use at the top of protected pages. */
 export async function requireProfile(): Promise<SessionProfile> {

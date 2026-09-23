@@ -49,7 +49,7 @@ export default async function DashboardPage({
   const isAdmin = profile.role === "admin";
   const supabase = await createClient();
 
-  const [patients, periodPatients, admitted, expiring, money] =
+  const [patients, periodPatients, admitted, expiring, money, outstandingResult] =
     await Promise.all([
       supabase.from("patients").select("id", { count: "exact", head: true }),
       // Registered inside the chosen period, so both faces of the card answer
@@ -73,13 +73,13 @@ export default async function DashboardPage({
         from_date: range.from,
         to_date: range.to,
       }),
+      // Outstanding is not period-scoped on purpose: money owed is owed
+      // whatever month it was incurred in, and scoping it would hide the
+      // oldest debts. Asked alongside the rest rather than after it - it
+      // depends on none of them, and waiting cost a whole extra round trip.
+      isAdmin ? supabase.rpc("outstanding_total") : Promise.resolve({ data: null }),
     ]);
-
-  // Outstanding is not period-scoped on purpose: money owed is owed whatever
-  // month it was incurred in, and scoping it would hide the oldest debts.
-  const { data: outstanding } = isAdmin
-    ? await supabase.rpc("outstanding_total")
-    : { data: null };
+  const outstanding = outstandingResult.data;
 
   const patientCount = patients.count ?? 0;
   const periodPatientCount = periodPatients.count ?? 0;
