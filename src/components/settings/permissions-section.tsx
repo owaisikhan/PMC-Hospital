@@ -117,26 +117,26 @@ export function PermissionsSection({
       ) : null}
 
       <div className="relative min-w-0 overflow-x-auto rounded-xl surface">
-        <table className="stack-table w-full md:min-w-[52rem] border-collapse text-base">
+        <table className="stack-table w-full border-collapse text-base">
           <caption className="sr-only">Every login, its access and where it is signed in</caption>
           <thead>
             <tr className="border-b border-border text-left">
-              <th scope="col" className="px-4 py-3 font-medium">
+              <th scope="col" className="px-3 py-3 xl:px-4 font-medium">
                 Name
               </th>
-              <th scope="col" className="px-4 py-3 font-medium">
+              <th scope="col" className="px-3 py-3 xl:px-4 font-medium">
                 Login
               </th>
-              <th scope="col" className="px-4 py-3 font-medium">
+              <th scope="col" className="px-3 py-3 xl:px-4 font-medium">
                 Role
               </th>
-              <th scope="col" className="px-4 py-3 font-medium">
+              <th scope="col" className="px-3 py-3 xl:px-4 font-medium">
                 Status
               </th>
-              <th scope="col" className="px-4 py-3 font-medium">
+              <th scope="col" className="px-3 py-3 xl:px-4 font-medium">
                 Last seen
               </th>
-              <th scope="col" className="px-4 py-3 font-medium">
+              <th scope="col" className="px-3 py-3 xl:px-4 font-medium">
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
@@ -149,33 +149,44 @@ export function PermissionsSection({
 
               return (
                 <tr key={login.id} className="border-b border-border/60 last:border-b-0">
-                  <td data-cell="primary" className="px-4 py-3">
+                  <td data-cell="primary" className="px-3 py-3 xl:px-4">
                     <span className="font-medium">{login.fullName}</span>
                     {isSelf ? (
                       <span className="ml-1.5 text-sm text-muted-foreground">(you)</span>
                     ) : null}
                   </td>
-                  <td data-label="Login" className="px-4 py-3 whitespace-nowrap text-muted-foreground">
+                  {/* A long email used to hold this column open on one line and
+                      push the whole table wider than its card. It now breaks
+                      after the name part, before the @, and only splits inside
+                      a word if even that will not fit. */}
+                  <td data-label="Login" className="px-3 py-3 text-muted-foreground md:min-w-[9rem] xl:px-4">
                     {login.username ? (
-                      <span className="font-mono text-sm">{login.username}</span>
+                      <span className="font-mono text-sm whitespace-nowrap">{login.username}</span>
                     ) : (
-                      login.email
+                      <span className="text-sm wrap-anywhere">
+                        {login.email.split("@")[0]}
+                        {login.email.includes("@") ? (
+                          <>
+                            <wbr />@{login.email.split("@").slice(1).join("@")}
+                          </>
+                        ) : null}
+                      </span>
                     )}
                   </td>
-                  <td data-label="Role" className="px-4 py-3">
+                  <td data-label="Role" className="px-3 py-3 xl:px-4">
                     <Badge variant={login.role === "admin" ? "default" : "neutral"}>
                       {ROLE_LABELS[login.role]}
                     </Badge>
                   </td>
-                  <td data-label="Status" className="px-4 py-3">
+                  <td data-label="Status" className="px-3 py-3 xl:px-4">
                     <Badge variant={login.isActive ? "success" : "warning"}>
                       {login.isActive ? "Active" : "Deactivated"}
                     </Badge>
                   </td>
-                  <td data-label="Last seen" className="px-4 py-3 whitespace-nowrap">
+                  <td data-label="Last seen" className="px-3 py-3 xl:px-4">
                     {latest ? (
                       <>
-                        <span className="flex items-center gap-1.5 text-success">
+                        <span className="flex items-center gap-1.5 whitespace-nowrap text-success">
                           <span className="size-1.5 shrink-0 rounded-full bg-success" aria-hidden />
                           {timeAgo(latest.lastSeenAt)}
                         </span>
@@ -185,12 +196,14 @@ export function PermissionsSection({
                         </span>
                       </>
                     ) : (
-                      <span className="text-muted-foreground">Never signed in</span>
+                      <span className="whitespace-nowrap text-muted-foreground">Never signed in</span>
                     )}
                   </td>
-                  <td data-cell="actions" className="px-4 py-3">
+                  <td data-cell="actions" className="px-3 py-3 xl:px-4">
                     {isSelf ? null : (
-                      <div className="flex flex-wrap items-center gap-2">
+                      // Wraps onto a second row when space is short, rather than
+                      // squeezing the buttons until their labels break.
+                      <div className="flex flex-wrap items-center gap-2 md:justify-end">
                         {!login.isActive ? (
                           // A fresh login is created active; the only way one
                           // ends up deactivated is DeactivateButton below, so
