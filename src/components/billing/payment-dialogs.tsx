@@ -233,7 +233,7 @@ export function ReversePaymentButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-9 items-center gap-1.5 rounded-lg border border-border px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="flex h-9 items-center gap-1.5 rounded-lg border border-destructive/35 bg-destructive/10 px-3 text-sm font-semibold text-destructive transition-colors hover:border-destructive/60 hover:bg-destructive/20 focus-visible:ring-3 focus-visible:ring-destructive/30 focus-visible:outline-none"
       >
         <Undo2 className="size-4" aria-hidden />
         Reverse
