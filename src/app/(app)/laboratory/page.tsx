@@ -41,6 +41,11 @@ interface OrderRow {
   cost_amount: number | string | null
   external_lab: string | null
   result_note: string | null
+  // Joined in by the view (0020), so the page needs no second request for
+  // them. Null only if RLS hides the patient or test from this login.
+  patient_mrn: string | null
+  patient_name: string | null
+  test_name: string | null
 }
 
 const STATUS_STYLE: Record<
@@ -75,13 +80,14 @@ export default async function LaboratoryPage({
   const tab: LabTab = visibleTabs.includes(rawTab as LabTab) ? (rawTab as LabTab) : "orders"
 
   // The masked view, not lab_orders directly - staff must not see
-  // cost_amount. Patient and test names are fetched separately below and
-  // joined in JS, rather than nested-embedded here: PostgREST resolves an
-  // embed via the foreign key metadata on the queried relation, and a view
-  // wrapping a table does not carry that over.
+  // cost_amount. The view also carries each order's patient and test names
+  // (PostgREST cannot embed through a view), so they arrive with the orders
+  // instead of in a second round trip.
   let request = supabase
     .from("lab_orders_view")
-    .select("id, patient_id, test_id, ordered_on, status, charge_amount, cost_amount, external_lab, result_note")
+    .select(
+      "id, patient_id, test_id, ordered_on, status, charge_amount, cost_amount, external_lab, result_note, patient_mrn, patient_name, test_name"
+    )
     .order("ordered_on", { ascending: false })
     .order("created_at", { ascending: false })
 
@@ -133,33 +139,6 @@ export default async function LaboratoryPage({
     externalLab: (Array.isArray(t.labs) ? t.labs[0]?.name : t.labs?.name) ?? null,
     chargePrice: Number(t.charge_price),
   }))
-  const testNameById = new Map(tests.map((t) => [t.id, t.name]))
-
-  // Orders can reference a discharged patient or an inactive test, neither of
-  // which is in the two lists above (admitted patients only; active tests
-  // only), so names missing from those lists are fetched separately here -
-  // by exactly the ids this page's orders actually reference, not a second
-  // copy of the same broad list.
-  const missingTestIds = [...new Set(orders.map((o) => o.test_id))].filter(
-    (id) => !testNameById.has(id)
-  )
-  const orderPatientIds = [...new Set(orders.map((o) => o.patient_id))]
-
-  const [extraTestsResult, orderPatientsResult] = await Promise.all([
-    missingTestIds.length > 0
-      ? supabase.from("lab_tests").select("id, name").in("id", missingTestIds)
-      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
-    orderPatientIds.length > 0
-      ? supabase.from("patients").select("id, mrn, full_name").in("id", orderPatientIds)
-      : Promise.resolve({ data: [] as { id: string; mrn: string; full_name: string }[] }),
-  ])
-  for (const t of extraTestsResult.data ?? []) testNameById.set(t.id, t.name)
-  const orderPatientById = new Map(
-    ((orderPatientsResult.data ?? []) as { id: string; mrn: string; full_name: string }[]).map(
-      (p) => [p.id, p]
-    )
-  )
-
   const patients: PatientOption[] = (
     (patientsResult.data ?? []) as unknown as {
       id: string
@@ -178,8 +157,7 @@ export default async function LaboratoryPage({
 
   const filteredOrders = q
     ? orders.filter((order) => {
-        const patient = orderPatientById.get(order.patient_id)
-        return patient ? patient.full_name.toLowerCase().includes(q.toLowerCase()) : false
+        return order.patient_name?.toLowerCase().includes(q.toLowerCase()) ?? false
       })
     : orders
 
@@ -368,8 +346,10 @@ export default async function LaboratoryPage({
                         {filteredOrders.map((order, index) => {
                           const style = STATUS_STYLE[order.status]
                           const StatusIcon = style.icon
-                          const patient = orderPatientById.get(order.patient_id) ?? null
-                          const testName = testNameById.get(order.test_id) ?? null
+                          const patient = order.patient_name
+                            ? { id: order.patient_id, mrn: order.patient_mrn ?? "", full_name: order.patient_name }
+                            : null
+                          const testName = order.test_name
 
                           return (
                             <tr key={order.id} className="border-b border-border/60 last:border-b-0">
