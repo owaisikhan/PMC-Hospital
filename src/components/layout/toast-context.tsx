@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { AnimatePresence, m, useReducedMotion } from "motion/react"
 import { CheckCircle2, X, XCircle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -62,7 +62,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           {toasts.map((toast) => {
             const Icon = toast.ok ? CheckCircle2 : XCircle
             return (
-              <motion.div
+              <m.div
                 key={toast.id}
                 layout
                 initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.95 }}
@@ -90,7 +90,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 >
                   <X className="size-4" aria-hidden />
                 </button>
-              </motion.div>
+              </m.div>
             )
           })}
         </AnimatePresence>

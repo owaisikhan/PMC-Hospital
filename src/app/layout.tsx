@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
+import { MotionProvider } from "@/components/layout/motion-provider"
 import { ThemeProvider } from "@/components/layout/theme-provider"
 
 import "./globals.css"
@@ -35,7 +36,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <MotionProvider>{children}</MotionProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

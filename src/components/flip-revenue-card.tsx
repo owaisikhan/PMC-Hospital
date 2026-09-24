@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { RefreshCw } from "lucide-react";
 
 import { BedsIcon, PatientsIcon } from "@/components/badge-icons";
@@ -61,7 +61,7 @@ export function FlipRevenueCard({
         {meter && sharePercent !== undefined ? (
           <div className="flex items-center gap-2">
             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-              <motion.div
+              <m.div
                 className="h-full rounded-full bg-primary"
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(100, sharePercent)}%` }}
@@ -92,7 +92,7 @@ export function FlipRevenueCard({
     // perspective for the turn, and the two transforms stay independent.
     <TiltCard>
       <div className="flip-scene">
-        <motion.button
+        <m.button
           type="button"
           onClick={() => setFlipped((previous) => !previous)}
           aria-pressed={flipped}
@@ -104,7 +104,7 @@ export function FlipRevenueCard({
           className="block w-full rounded-xl text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           whileTap={reduceMotion ? undefined : { scale: 0.98 }}
         >
-          <motion.div
+          <m.div
             className="relative"
             style={{ transformStyle: "preserve-3d" }}
             animate={{ rotateY: flipped ? 180 : 0 }}
@@ -134,8 +134,8 @@ export function FlipRevenueCard({
                 !flipped,
               )}
             </Card>
-          </motion.div>
-        </motion.button>
+          </m.div>
+        </m.button>
 
         {/* Announced on change, so the new figure is read without moving focus. */}
         <p className="sr-only" aria-live="polite">

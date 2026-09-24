@@ -2,7 +2,7 @@
 
 import { useRef, type PointerEvent, type ReactNode } from "react";
 import {
-  motion,
+  m,
   useMotionTemplate,
   useMotionValue,
   useReducedMotion,
@@ -88,7 +88,7 @@ export function TiltCard({
   };
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
       data-tilt=""
       onPointerMove={track}
@@ -105,11 +105,11 @@ export function TiltCard({
       className={cn("relative h-full [&>*]:h-full", className)}
     >
       {children}
-      <motion.div
+      <m.div
         aria-hidden
         style={{ backgroundImage: sheen, opacity: sheenOpacity }}
         className="pointer-events-none absolute inset-0 rounded-xl"
       />
-    </motion.div>
+    </m.div>
   );
 }

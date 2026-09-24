@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, type ReactNode } from "react"
-import { motion, useReducedMotion } from "motion/react"
+import { m, useReducedMotion } from "motion/react"
 
 /**
  * The region a segmented control filters. When the selection changes the new
@@ -40,7 +40,7 @@ export function TabPanel({
   }
 
   return (
-    <motion.div
+    <m.div
       key={panelKey}
       // Skipping `initial` under prefers-reduced-motion, not just zeroing the
       // duration: a zero-length transition still paints one frame at the
@@ -59,6 +59,6 @@ export function TabPanel({
       }
     >
       {children}
-    </motion.div>
+    </m.div>
   )
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { motion, useReducedMotion } from "motion/react"
+import { m, useReducedMotion } from "motion/react"
 
 import {
   BedsIcon,
@@ -102,7 +102,7 @@ export function SlidingTabs({
         const body = (
           <>
             {hasPill ? (
-              <motion.span
+              <m.span
                 layoutId={`${groupId}-pill`}
                 aria-hidden
                 className="absolute inset-0 rounded-md bg-primary"

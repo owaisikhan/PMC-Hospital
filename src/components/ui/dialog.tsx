@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { AnimatePresence, m, useReducedMotion } from "motion/react"
 import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -73,7 +73,7 @@ export function Dialog({
     >
       <AnimatePresence onExitComplete={() => ref.current?.close()}>
         {open ? (
-          <motion.div
+          <m.div
             key="panel"
             initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -102,7 +102,7 @@ export function Dialog({
             {/* dialog-body hides the scrollbar chrome; the forms are laid out
                 to fit, so the bar would only ever be a sliver of clutter. */}
             <div className="dialog-body overflow-y-auto px-5 py-4">{children}</div>
-          </motion.div>
+          </m.div>
         ) : null}
       </AnimatePresence>
     </dialog>

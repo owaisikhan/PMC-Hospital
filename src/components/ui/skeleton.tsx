@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useReducedMotion } from "motion/react"
+import { m, useReducedMotion } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -34,7 +34,7 @@ export function Skeleton({ className, delay = 0 }: SkeletonProps) {
           prefers-reduced-motion it just stays parked off to the left, where
           overflow-hidden clips it, leaving the plain block - which still reads
           as "not loaded yet". */}
-      <motion.span
+      <m.span
         className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-transparent via-foreground/10 to-transparent"
         initial={{ x: "-100%" }}
         animate={{ x: reduceMotion ? "-100%" : "100%" }}
