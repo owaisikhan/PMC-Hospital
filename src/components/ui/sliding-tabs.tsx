@@ -141,6 +141,11 @@ export function SlidingTabs({
           <Link
             key={item.key}
             href={item.href}
+            // Fetched in full as soon as the tabs are on screen, so the first
+            // switch to a tab shows it at once instead of waiting on the
+            // server. A tab group is two or three links, so this costs a
+            // couple of small background requests per page.
+            prefetch={true}
             scroll={false}
             onClick={() => setPill(item.key)}
             className={shape}
